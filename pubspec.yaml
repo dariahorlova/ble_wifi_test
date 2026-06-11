@@ -1,0 +1,29 @@
+name: ble_wifi_test
+description: "A new Flutter project."
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  freezed_annotation: ^3.1.0
+  flutter_bloc: ^9.1.1
+  flutter_blue_plus: ^1.36.8
+  plugin_wifi_connect: ^2.0.1
+  nfc_manager: ^4.1.1
+  nfc_manager_ndef: ^1.1.0
+  http: ^1.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.15.0
+  freezed: ^3.2.5
+
+flutter:
+  uses-material-design: true

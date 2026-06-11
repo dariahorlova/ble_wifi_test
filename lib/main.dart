@@ -1,0 +1,26 @@
+import 'package:ble_wifi_test/features/connect/cubit/ble_wifi_cubit.dart';
+import 'package:ble_wifi_test/features/connect/repository/ble_wifi_repository.dart';
+import 'package:ble_wifi_test/features/connect/services/ble_service.dart';
+import 'package:ble_wifi_test/features/connect/services/internet_service.dart';
+import 'package:ble_wifi_test/features/connect/services/wifi_service.dart';
+import 'package:ble_wifi_test/main_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+void main() {
+  runApp(const MainApp());
+}
+
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<BleWifiCubit>(
+      create: (context) => BleWifiCubit(
+        BLEWIFIRepository(BLEService(), WifiService(), InternetService()),
+      ),
+      child: const MaterialApp(home: MainScreen()),
+    );
+  }
+}
