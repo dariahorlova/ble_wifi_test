@@ -83,7 +83,5 @@ class BLEWIFIRepository {
 
   Future<bool> disconnectDeviceWifi() => _wifiService.disconnect();
 
-  Future<bool> connectToWifi(String ssid) => _wifiService.connectToWifi(ssid);
-
   Future<bool> pingInternet() => _internetService.hasInternet();
 }

@@ -480,14 +480,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.2"
-  plugin_wifi_connect:
-    dependency: "direct main"
-    description:
-      name: plugin_wifi_connect
-      sha256: "19d318dfe834e9904bae8328b4ff7b104f7de697dec6709a10f1e9c743e7cbc1"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.1"
   pool:
     dependency: transitive
     description:
@@ -613,6 +605,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.9"
+  tm_wifi_connect:
+    dependency: "direct main"
+    description:
+      path: "plugins/tm_wifi_connect"
+      relative: true
+    source: path
+    version: "0.0.1"
   typed_data:
     dependency: transitive
     description:
