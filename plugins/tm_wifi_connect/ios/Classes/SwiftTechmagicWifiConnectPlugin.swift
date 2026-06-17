@@ -136,8 +136,10 @@ public class SwiftTechmagicWifiConnectPlugin: NSObject, FlutterPlugin {
       result(true)
       return
     }
-
-    if let url = URL(string: "App-Prefs:root=WIFI") {
+    /// we cant open wifi page anymore, we can only open settings app. if ut has no copy on background
+    /// it will launch settings page, othewise the app will be restored from background with last visited page.
+    /// yeah, that's funny. but that's how it works on iOS for now.
+    if let url = URL(string: "App-Prefs:") {
       DispatchQueue.main.async {
         UIApplication.shared.open(url, options: [:], completionHandler: nil)
       }
