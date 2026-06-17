@@ -55,6 +55,8 @@ class BleWifiCubit extends Cubit<BleWifiState> {
 
     await _autoconnectToDeviceBLE(avdName, 5);
     await makeMagic();
+    // reconnect to BLE
+    //await _autoconnectToDeviceBLE(avdName, 5);
   }
 
   Future<void> _stopNFCSession() async {
@@ -83,7 +85,7 @@ class BleWifiCubit extends Cubit<BleWifiState> {
     try {
       final devices =
           await repository.scanForDevices(
-            withServices: [Guid(BLEWIFIRepository.serviceUuid)],
+            withServices: [BLEWIFIRepository.serviceUuid],
             timeout: Duration(seconds: timeout),
           ) ??
           [];
@@ -156,8 +158,8 @@ class BleWifiCubit extends Cubit<BleWifiState> {
           .last;
 
       final resWifiConnect = await repository.connectToDeviceWifi(uuid);
-
       await repository.disconnectDeviceBLE();
+
       emit(state.copyWith(hintText: 'BLE device is disconnected'));
 
       if (!resWifiConnect) {

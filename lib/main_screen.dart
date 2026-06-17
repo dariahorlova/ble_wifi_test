@@ -67,26 +67,26 @@ class _MainScreenState extends State<MainScreen> {
                                 subtitle: Text(
                                   state.devices[index].remoteId.str,
                                 ),
-                                // trailing: Row(
-                                //   mainAxisSize: MainAxisSize.min,
-                                //   children: [
-                                //     IconButton(
-                                //       icon: const Icon(
-                                //         Icons.connect_without_contact,
-                                //       ),
-                                //       onPressed: () => cubit
-                                //           .connectToDeviceBLEByIndex(index),
-                                //     ),
-                                //     IconButton(
-                                //       icon: const Icon(Icons.close),
-                                //       onPressed: cubit.disconnectBLE,
-                                //     ),
-                                //     IconButton(
-                                //       icon: const Icon(Icons.wifi),
-                                //       onPressed: cubit.makeMagic,
-                                //     ),
-                                //   ],
-                                // ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.connect_without_contact,
+                                      ),
+                                      onPressed: () => cubit
+                                          .connectToDeviceBLEByIndex(index),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.close),
+                                      onPressed: cubit.disconnectBLE,
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.wifi),
+                                      onPressed: cubit.makeMagic,
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },

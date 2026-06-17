@@ -1,6 +1,8 @@
 import 'dart:developer' as developer;
 import 'dart:io';
 
+//import 'package:flutter_wifi_connect/flutter_wifi_connect.dart';
+
 import 'package:plugin_wifi_connect/plugin_wifi_connect.dart';
 
 class WifiService {
@@ -11,6 +13,13 @@ class WifiService {
 
   Future<bool> connectToDeviceWifi(String ssid, String password) async {
     try {
+      if (Platform.isAndroid) {
+        final resWifiEnabled = await PluginWifiConnect.isEnabled;
+        if (!resWifiEnabled) {
+          await PluginWifiConnect.activateWifi();
+        }
+      }
+
       for (var i = 0; i < 5; i++) {
         developer.log(
           "wifiservice:: trying(${i + 1}) to connect to device's Wifi",
