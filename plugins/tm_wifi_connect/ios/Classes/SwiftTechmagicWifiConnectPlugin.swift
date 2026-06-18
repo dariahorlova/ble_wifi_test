@@ -128,24 +128,82 @@ public class SwiftTechmagicWifiConnectPlugin: NSObject, FlutterPlugin {
   }
 
   /// Brings the WiFi radio to [target] state. iOS cannot toggle it
-  /// programmatically, so we send the user to the system WiFi settings and
-  /// then poll `isWifiEnabled` every 0.5s for up to 30s, replying true once the
-  /// target state is reached or false on timeout.
+  /// programmatically, so we ask the user to do it manually: a confirmation
+  /// dialog explains what to do; on confirm we open the Settings app and poll
+  /// `isWifiEnabled` every 0.5s for up to 30s, replying true once the target
+  /// state is reached or false on timeout. If the user declines we reply false
+  /// immediately — no point waiting.
   private func setWifiState(target: Bool, result: @escaping FlutterResult) {
     if isWifiEnabled() == target {
       result(true)
       return
     }
-    /// we cant open wifi page anymore, we can only open settings app. if ut has no copy on background
-    /// it will launch settings page, othewise the app will be restored from background with last visited page.
-    /// yeah, that's funny. but that's how it works on iOS for now.
-    if let url = URL(string: "App-Prefs:") {
-      DispatchQueue.main.async {
-        UIApplication.shared.open(url, options: [:], completionHandler: nil)
+
+    DispatchQueue.main.async {
+      self.confirmManualToggle(target: target) { [weak self] confirmed in
+        guard let self = self else {
+          result(false)
+          return
+        }
+        guard confirmed else {
+          result(false)
+          return
+        }
+        self.openSettings()
+        self.pollWifiState(target: target, ticks: 0, result: result)
       }
     }
+  }
 
-    pollWifiState(target: target, ticks: 0, result: result)
+  /// Shows a native alert asking the user to toggle WiFi manually.
+  /// Calls [completion] with `true` if the user confirms, `false` otherwise.
+  /// Must be called on the main thread.
+  private func confirmManualToggle(target: Bool, completion: @escaping (Bool) -> Void) {
+    let action = target ? "on" : "off"
+    let alert = UIAlertController(
+      title: nil,
+      message: "To continue you have to turn \(action) wifi manually",
+      preferredStyle: .alert)
+    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in
+      completion(false)
+    })
+    alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+      completion(true)
+    })
+
+    guard let presenter = topViewController() else {
+      completion(false)
+      return
+    }
+    presenter.present(alert, animated: true, completion: nil)
+  }
+
+  /// Opens the Settings app. We can no longer deep-link into the WiFi pane on
+  /// modern iOS, so this lands on the Settings root (or the app's last visited
+  /// Settings page if it was backgrounded). The dialog shown beforehand tells
+  /// the user what to do once there.
+  private func openSettings() {
+    if let url = URL(string: "App-Prefs:") {
+      UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    }
+  }
+
+  /// Returns the topmost presented view controller to present the alert from.
+  private func topViewController() -> UIViewController? {
+    var keyWindow: UIWindow?
+    if #available(iOS 13.0, *) {
+      keyWindow = UIApplication.shared.connectedScenes
+        .compactMap { $0 as? UIWindowScene }
+        .flatMap { $0.windows }
+        .first { $0.isKeyWindow }
+    } else {
+      keyWindow = UIApplication.shared.keyWindow
+    }
+    var top = keyWindow?.rootViewController
+    while let presented = top?.presentedViewController {
+      top = presented
+    }
+    return top
   }
 
   /// Polls `isWifiEnabled` twice per second. Recursion guarantees a single

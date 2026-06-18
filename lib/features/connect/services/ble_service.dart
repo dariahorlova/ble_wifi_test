@@ -88,7 +88,7 @@ class BLEService {
 
     await subscription.cancel();
     _consoleOutput(
-      'BLEService:: scanning was finished. something was probably found',
+      'BLEService:: scanning was finished. found ${output.length} devices.',
     );
     return output;
   }

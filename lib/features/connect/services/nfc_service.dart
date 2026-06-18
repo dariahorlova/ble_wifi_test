@@ -15,7 +15,8 @@ class NFCService {
   void setLogLevel(NFCLogLevel level) => _logLevel = level;
 
   int _nfcRetryCount = 0;
-  static const int _maxNfcRetries = 5;
+  static const int _maxNfcRetries = 10;
+  static const gapBetweenNfcAttempts = Duration(milliseconds: 1000);
   bool _isProcessingTag = false;
 
   /// that's a callback parent function. it takes ndef data as a string parameter
@@ -120,7 +121,7 @@ class NFCService {
       await _stopNFCSession();
 
       // pause between attempts
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(gapBetweenNfcAttempts);
 
       _startSessionInternal();
     } else {

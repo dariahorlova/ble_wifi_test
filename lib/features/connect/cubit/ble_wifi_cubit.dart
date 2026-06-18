@@ -34,7 +34,7 @@ class BleWifiCubit extends Cubit<BleWifiState> {
 
     // launch flow
     await _autoconnectToDeviceBLE(avdName, 5);
-    await makeMagic();
+    //await makeMagic();
     // reconnect to BLE
     //await _autoconnectToDeviceBLE(avdName, 5);
   }
