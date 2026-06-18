@@ -36,10 +36,9 @@ class BleWifiCubit extends Cubit<BleWifiState> {
 
     // launch flow
     await _autoconnectToDeviceBLE(avdName, 5);
+    await updateDateTimeOnBle();
     await getDeviceConfigByBle();
     //await makeMagic();
-    // reconnect to BLE
-    //await _autoconnectToDeviceBLE(avdName, 5);
   }
 
   Future<void> searchBLE({int timeout = 15}) async {
@@ -111,6 +110,8 @@ class BleWifiCubit extends Cubit<BleWifiState> {
       'got config from BLE: $res',
     );
   }
+
+  Future<void> updateDateTimeOnBle() => repository.setDateTime();
 
   Future<void> disconnectBLE() async {
     emit(
