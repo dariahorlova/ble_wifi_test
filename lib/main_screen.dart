@@ -2,6 +2,8 @@ import 'package:ble_wifi_test/features/connect/cubit/ble_wifi_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'features/connect/models/device_booklets.dart';
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -52,6 +54,7 @@ class _MainScreenState extends State<MainScreen> {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: ListTile(
+                                titleAlignment: ListTileTitleAlignment.top,
                                 tileColor: cardColor(state, index),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -61,9 +64,48 @@ class _MainScreenState extends State<MainScreen> {
                                       ? 'Unknown Device'
                                       : state.devices[index].advName,
                                 ),
-                                subtitle: Text(
-                                  state.devices[index].remoteId.str,
-                                ),
+                                subtitle: state.deviceConfig == null
+                                    ? Text(state.devices[index].remoteId.str)
+                                    : Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            state.deviceConfig?.readerBleId ??
+                                                'not assigned',
+                                          ),
+                                          Text(
+                                            'Reader ID:${state.deviceConfig?.readerId ?? 'not assigned'}',
+                                          ),
+                                          Text(
+                                            'Battery :${state.deviceConfig?.batteryLevel ?? 'not assigned'}',
+                                          ),
+                                          Text(
+                                            'Free storage :${state.deviceConfig?.remainingStorageMb ?? 'not assigned'}',
+                                          ),
+                                          Text(
+                                            'Firmware :${state.deviceConfig?.firmwareVersion ?? 'not assigned'}',
+                                          ),
+                                          Text(
+                                            'Current booklet :${state.deviceConfig?.currentStoryKey ?? 'not assigned'}',
+                                          ),
+                                          Text('Reader booklets:'),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              left: 8,
+                                            ),
+                                            child: Column(
+                                              children:
+                                                  state.deviceConfig?.booklets
+                                                      ?.map(
+                                                        (e) => readerBooks(e),
+                                                      )
+                                                      .toList() ??
+                                                  [SizedBox.shrink()],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -71,8 +113,8 @@ class _MainScreenState extends State<MainScreen> {
                                       icon: const Icon(
                                         Icons.connect_without_contact,
                                       ),
-                                      onPressed: () => cubit
-                                          .connectToDeviceBLEByIndex(index),
+                                      onPressed: () =>
+                                          cubit.getDeviceConfigByBle(),
                                     ),
                                     IconButton(
                                       icon: const Icon(Icons.close),
@@ -113,6 +155,40 @@ class _MainScreenState extends State<MainScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget readerBooks(DeviceBooklets data) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(data.id),
+        Text('Variants'),
+
+        if (data.variantIds.isEmpty)
+          Padding(padding: EdgeInsets.only(left: 4), child: Text('-'))
+        else
+          ...data.variantIds.map(
+            (e) => Padding(
+              padding: EdgeInsets.only(left: 4),
+              child: Text(
+                e,
+                textAlign: TextAlign.start,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ),
+
+        Text('Customs'),
+        if (data.customRecordings.isEmpty)
+          Padding(padding: EdgeInsets.only(left: 4), child: Text('-'))
+        else
+          ...data.customRecordings.map(
+            (e) => Padding(padding: EdgeInsets.only(left: 4), child: Text('e')),
+          ),
+        Text('--------------'),
+      ],
     );
   }
 }

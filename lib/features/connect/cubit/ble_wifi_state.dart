@@ -10,5 +10,6 @@ abstract class BleWifiState with _$BleWifiState {
     @Default(false) bool isWifiConnected,
     @Default('') String hintText,
     @Default(<BluetoothDevice>[]) List<BluetoothDevice> devices,
+    @Default(null) DeviceConfig? deviceConfig,
   }) = _BleWifiState;
 }

@@ -1,9 +1,11 @@
 import 'dart:developer' as developer;
 
-import 'package:ble_wifi_test/features/connect/repository/ble_wifi_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../models/device_config.dart';
+import '../repository/ble_wifi_repository.dart';
 
 part 'ble_wifi_state.dart';
 part 'ble_wifi_cubit.freezed.dart';
@@ -34,6 +36,7 @@ class BleWifiCubit extends Cubit<BleWifiState> {
 
     // launch flow
     await _autoconnectToDeviceBLE(avdName, 5);
+    await getDeviceConfigByBle();
     //await makeMagic();
     // reconnect to BLE
     //await _autoconnectToDeviceBLE(avdName, 5);
@@ -100,11 +103,21 @@ class BleWifiCubit extends Cubit<BleWifiState> {
     await connectToDeviceBLEByIndex(index);
   }
 
+  Future<void> getDeviceConfigByBle() async {
+    final (res, config) = await repository.getConfig();
+    emit(state.copyWith(deviceConfig: config));
+    _temporaryHint(
+      res ? BleWifiStatus.success : BleWifiStatus.error,
+      'got config from BLE: $res',
+    );
+  }
+
   Future<void> disconnectBLE() async {
     emit(
       state.copyWith(
         status: BleWifiStatus.loading,
         hintText: 'Disconnecting BLE device...',
+        deviceConfig: null,
       ),
     );
     await repository.disconnectDeviceBLE();

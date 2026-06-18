@@ -254,38 +254,64 @@ class BLEService {
     return result;
   }
 
-  Future<String> writeWithResponse(
+  Future<(Uint8List? data, String? errorMessage)> writeWithResponse(
     BluetoothCharacteristic? writeCharacteristic,
     BluetoothCharacteristic? listenCharacteristic,
     List<int> dataToWrite,
   ) async {
     if (!isBLEDeviceConnected) {
-      return BLEServiceResponseKeys.bleNotConnected;
+      return (null, BLEServiceResponseKeys.bleNotConnected);
     }
 
     StreamSubscription<List<int>>? subscription;
-    final completer = Completer<String>();
+    final completer = Completer<(Uint8List?, String?)>();
+
+    final List<int> accumulatedBytes = [];
+    // we will use it to keep a full message length (with header)
+    int? targetTotalLength;
+    const int uselessHeaderSize = 4;
 
     try {
+      await listenCharacteristic?.setNotifyValue(true);
+
       subscription = listenCharacteristic?.onValueReceived.listen((bytes) {
-        _consoleOutput(
-          'BLEService:: notify from device [${_bytesAsString(bytes)}] to characteristic ${listenCharacteristic.uuid.str}',
-        );
-        if (!completer.isCompleted) {
-          completer.complete(_bytesAsString(bytes));
+        accumulatedBytes.addAll(bytes);
+
+        // first 4 bytes will tell us the full message size
+        if (targetTotalLength == null &&
+            accumulatedBytes.length >= uselessHeaderSize) {
+          final headerBytes = Uint8List.fromList(
+            accumulatedBytes.sublist(0, uselessHeaderSize),
+          );
+          // byte order is BigEndian. for LittleEndian use Endian.little
+          final payloadLength = ByteData.sublistView(
+            headerBytes,
+          ).getUint32(0, Endian.little);
+
+          targetTotalLength = payloadLength + uselessHeaderSize;
+        }
+
+        // let's check if we received the full message
+        if (targetTotalLength != null &&
+            accumulatedBytes.length >= targetTotalLength!) {
+          if (!completer.isCompleted) {
+            completer.complete((
+              Uint8List.fromList(accumulatedBytes.sublist(4)),
+              null,
+            ));
+          }
         }
       });
-      await listenCharacteristic?.setNotifyValue(true);
 
       await writeCharacteristic?.write(dataToWrite);
 
       return await completer.future.timeout(
         const Duration(seconds: 10),
-        onTimeout: () => BLEServiceResponseKeys.bleTimeoutError,
+        onTimeout: () => (null, BLEServiceResponseKeys.bleTimeoutError),
       );
     } catch (e) {
       _consoleOutput('BLEService:: writeWithResponse error: $e');
-      return BLEServiceResponseKeys.bleTimeoutError;
+      return (null, BLEServiceResponseKeys.bleTimeoutError);
     } finally {
       await listenCharacteristic?.setNotifyValue(false);
       await subscription?.cancel();
