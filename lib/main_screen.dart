@@ -27,10 +27,7 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         title: const Text('BLE wifi test'),
         actions: [
-          IconButton(
-            onPressed: cubit.launchNFCSession,
-            icon: const Icon(Icons.nfc),
-          ),
+          IconButton(onPressed: cubit.launchNFC, icon: const Icon(Icons.nfc)),
         ],
       ),
       body: BlocBuilder<BleWifiCubit, BleWifiState>(

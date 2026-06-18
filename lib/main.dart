@@ -2,6 +2,7 @@ import 'package:ble_wifi_test/features/connect/cubit/ble_wifi_cubit.dart';
 import 'package:ble_wifi_test/features/connect/repository/ble_wifi_repository.dart';
 import 'package:ble_wifi_test/features/connect/services/ble_service.dart';
 import 'package:ble_wifi_test/features/connect/services/internet_service.dart';
+import 'package:ble_wifi_test/features/connect/services/nfc_service.dart';
 import 'package:ble_wifi_test/features/connect/services/wifi_service.dart';
 import 'package:ble_wifi_test/main_screen.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,12 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<BleWifiCubit>(
       create: (context) => BleWifiCubit(
-        BLEWIFIRepository(BLEService(), WifiService(), InternetService()),
+        BLEWIFIRepository(
+          NFCService(),
+          BLEService(),
+          WifiService(),
+          InternetService(),
+        ),
       ),
       child: const MaterialApp(home: MainScreen()),
     );

@@ -2,14 +2,24 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:ble_wifi_test/features/connect/services/internet_service.dart';
+import 'package:ble_wifi_test/features/connect/services/nfc_service.dart';
 import 'package:ble_wifi_test/features/connect/services/wifi_service.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../services/ble_service.dart';
 
 class BLEWIFIRepository {
-  BLEWIFIRepository(this._bleService, this._wifiService, this._internetService);
+  BLEWIFIRepository(
+    this._nfcService,
+    this._bleService,
+    this._wifiService,
+    this._internetService,
+  ) {
+    _nfcService.setLogLevel(NFCLogLevel.debug);
+    _bleService.setLogLevel(BLELogLevel.debug);
+  }
 
+  final NFCService _nfcService;
   final BLEService _bleService;
   final WifiService _wifiService;
   final InternetService _internetService;
@@ -20,6 +30,7 @@ class BLEWIFIRepository {
   static const wifiPassword = 'INFINIBOOK';
   static const wifiSsid = 'INFINIBOOK_';
 
+  //... ble
   bool get isBLEDeviceConnected => _bleService.isBLEDeviceConnected;
 
   Future<(bool, String)> connectToDevice(BluetoothDevice device) =>
@@ -60,6 +71,7 @@ class BLEWIFIRepository {
     return false;
   }
 
+  //... wifi
   Future<bool> connectToDeviceWifi(String uuid) async {
     try {
       developer.log(
@@ -83,5 +95,11 @@ class BLEWIFIRepository {
 
   Future<bool> disconnectDeviceWifi() => _wifiService.disconnect();
 
+  //... internet
   Future<bool> pingInternet() => _internetService.hasInternet();
+
+  //... nfc
+  Future<void> launchNFC(
+    Future<void> Function({String? ndefData, String? error})? callback,
+  ) => _nfcService.launch(callback);
 }

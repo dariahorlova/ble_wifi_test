@@ -4,8 +4,6 @@ import 'package:ble_wifi_test/features/connect/repository/ble_wifi_repository.da
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:nfc_manager/nfc_manager.dart';
-import 'package:nfc_manager_ndef/nfc_manager_ndef.dart';
 
 part 'ble_wifi_state.dart';
 part 'ble_wifi_cubit.freezed.dart';
@@ -16,58 +14,29 @@ class BleWifiCubit extends Cubit<BleWifiState> {
   final BLEWIFIRepository repository;
   BleWifiCubit(this.repository)
     : super(const BleWifiState(status: BleWifiStatus.initial)) {
-    launchNFCSession();
+    launchNFC();
   }
 
-  void launchNFCSession() async {
-    final isNfcAvailable =
-        (await NfcManager.instance.checkAvailability()) ==
-        NfcAvailability.enabled;
+  Future<void> launchNFC() => repository.launchNFC(_nfcCallback);
 
-    developer.log('repo::launchNFCSession. NFC is available: $isNfcAvailable');
-    if (!isNfcAvailable) return;
+  Future<void> _nfcCallback({String? ndefData, String? error}) async {
+    if (error != null) {
+      _temporaryHint(BleWifiStatus.error, error);
+      return;
+    }
+    if (ndefData == null || ndefData.isEmpty) {
+      _temporaryHint(BleWifiStatus.error, 'No NDEF data found');
+      return;
+    }
 
-    await _stopNFCSession();
+    //create an avdName from ndef
+    final avdName = '$blePrefix$ndefData';
 
-    await NfcManager.instance.startSession(
-      onDiscovered: _onTagDiscovered,
-      pollingOptions: {
-        NfcPollingOption.iso14443,
-        NfcPollingOption.iso15693,
-        NfcPollingOption.iso18092,
-      },
-    );
-  }
-
-  Future<void> _onTagDiscovered(NfcTag tag) async {
-    developer.log('repo::_onTagDiscovered. NFC tag found...');
-    final ndef = Ndef.from(tag);
-    final records = ndef?.cachedMessage?.records;
-
-    if (records == null) return;
-    final uri = Uri.tryParse(
-      String.fromCharCodes(records[0].payload.sublist(1)),
-    ); // 1st byte is type in our case it 0x04 and means "https://"
-    developer.log('repo::_onTagDiscovered. uri: $uri');
-    final avdName = '$blePrefix${uri?.queryParameters['reader_id'] ?? ''}';
-
-    await _stopNFCSession();
-
+    // launch flow
     await _autoconnectToDeviceBLE(avdName, 5);
     await makeMagic();
     // reconnect to BLE
     //await _autoconnectToDeviceBLE(avdName, 5);
-  }
-
-  Future<void> _stopNFCSession() async {
-    try {
-      developer.log('repo::_stopNFCSession. NFC session can be stopped...');
-      await NfcManager.instance.stopSession();
-    } catch (e) {
-      developer.log(
-        'repo::_stopNFCSession. there is no previous NFC session found...',
-      );
-    }
   }
 
   Future<void> searchBLE({int timeout = 15}) async {
