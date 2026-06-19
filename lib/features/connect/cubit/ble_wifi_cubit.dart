@@ -5,19 +5,21 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../models/device_config.dart';
-import '../repository/ble_wifi_repository.dart';
+import '../repository/ble_repository.dart';
+import '../repository/common_repository.dart';
 
 part 'ble_wifi_state.dart';
 part 'ble_wifi_cubit.freezed.dart';
 
-const blePrefix = 'IB_';
-
 class BleWifiCubit extends Cubit<BleWifiState> {
-  final BLEWIFIRepository repository;
-  BleWifiCubit(this.repository)
+  BleWifiCubit(this.repository, this._bleRepository)
     : super(const BleWifiState(status: BleWifiStatus.initial)) {
+    _bleRepository.setLogLevel(BLERepoLogLevel.debug);
     launchNFC();
   }
+
+  final CommonRepository repository;
+  final BleRepository _bleRepository;
 
   Future<void> launchNFC() => repository.launchNFC(_nfcCallback);
 
@@ -32,7 +34,7 @@ class BleWifiCubit extends Cubit<BleWifiState> {
     }
 
     //create an avdName from ndef
-    final avdName = '$blePrefix$ndefData';
+    final avdName = '${BleRepository.blePrefix}$ndefData';
 
     // launch flow
     await _autoconnectToDeviceBLE(avdName, 5);
@@ -55,8 +57,8 @@ class BleWifiCubit extends Cubit<BleWifiState> {
     );
     try {
       final devices =
-          await repository.scanForDevices(
-            withServices: [BLEWIFIRepository.serviceUuid],
+          await _bleRepository.scanForDevices(
+            withServices: [BleRepository.serviceUuid],
             timeout: Duration(seconds: timeout),
           ) ??
           [];
@@ -79,7 +81,9 @@ class BleWifiCubit extends Cubit<BleWifiState> {
         hintText: 'Connecting to BLE device...',
       ),
     );
-    final (res, hint) = await repository.connectToDevice(state.devices[index]);
+    final (res, hint) = await _bleRepository.connectToDevice(
+      state.devices[index],
+    );
     _temporaryHint(
       res ? BleWifiStatus.success : BleWifiStatus.error,
       hint,
@@ -103,7 +107,7 @@ class BleWifiCubit extends Cubit<BleWifiState> {
   }
 
   Future<void> getDeviceConfigByBle() async {
-    final (res, config) = await repository.getConfig();
+    final (res, config) = await _bleRepository.getConfig();
     emit(state.copyWith(deviceConfig: config));
     _temporaryHint(
       res ? BleWifiStatus.success : BleWifiStatus.error,
@@ -111,7 +115,7 @@ class BleWifiCubit extends Cubit<BleWifiState> {
     );
   }
 
-  Future<void> updateDateTimeOnBle() => repository.setDateTime();
+  Future<void> updateDateTimeOnBle() => _bleRepository.setDateTime();
 
   Future<void> disconnectBLE() async {
     emit(
@@ -121,14 +125,14 @@ class BleWifiCubit extends Cubit<BleWifiState> {
         deviceConfig: null,
       ),
     );
-    await repository.disconnectDeviceBLE();
+    await _bleRepository.disconnect();
     _temporaryHint(BleWifiStatus.success, 'Done', currentDeviceIndex: -1);
   }
 
   Future<void> makeMagic() async {
-    if (repository.isBLEDeviceConnected) {
+    if (_bleRepository.isBLEDeviceConnected) {
       // turn on wifi
-      final resWifiLaunch = await repository.turnOnWifi();
+      final resWifiLaunch = await _bleRepository.turnOnWifi();
       if (!resWifiLaunch) {
         _temporaryHint(BleWifiStatus.error, 'Failed to turn on wifi');
         return;
@@ -141,7 +145,7 @@ class BleWifiCubit extends Cubit<BleWifiState> {
           .last;
 
       final resWifiConnect = await repository.connectToDeviceWifi(uuid);
-      await repository.disconnectDeviceBLE();
+      await _bleRepository.disconnect();
 
       emit(state.copyWith(hintText: 'BLE device is disconnected'));
 
