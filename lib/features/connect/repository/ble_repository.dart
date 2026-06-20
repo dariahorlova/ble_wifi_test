@@ -27,13 +27,21 @@ class BleRepository {
   static const _getContentCommand = <int>[9, 3];
   static const _factoryResetCommand = <int>[9, 11];
   static const _setDateTimeCommand = <int>[9, 12];
+  static const _updateConfig = <int>[9, 14];
   static const _setRebootCommand = <int>[9, 15];
 
+  /// for debugging purposes. by default [BLERepoLogLevel.debug]
   BLERepoLogLevel _logLevel = BLERepoLogLevel.debug;
+
+  /// for debugging purposes. to turn off console logs use [BLERepoLogLevel.production]
   void setLogLevel(BLERepoLogLevel level) => _logLevel = level;
 
+  /// is device connected getter. false if no device is connected
   bool get isBLEDeviceConnected => _bleService.isBLEDeviceConnected;
 
+  /// connect to wanted BluetoothDevice
+  /// returns tuple (isOk, message_key), where [isOk] means is connection successful or not
+  /// [message_key] can be found in [BLEServiceResponseKeys]. we can use this keys for UI messages
   Future<(bool, String)> connectToDevice(BluetoothDevice device) =>
       _bleService.connectToDevice(device);
 
@@ -48,6 +56,10 @@ class BleRepository {
   }) =>
       _bleService.scanForDevices(withServices: withServices, timeout: timeout);
 
+  /// run task with error handling and logging
+  /// [methodName] - name of method that will be logged
+  /// [task] - task method with template result that will be executed
+  /// [fallbackResult] - result that will be returned in case of error
   Future<T> _runBleTask<T>({
     required String methodName,
     required Future<T> Function() task,
@@ -64,12 +76,17 @@ class BleRepository {
     }
   }
 
+  /// console output. depends on [_logLevel]. and works only in debug mode
   void _consoleOutput(String message) {
     if (_logLevel == BLERepoLogLevel.debug) {
       developer.log(message);
     }
   }
 
+  /// turn on wifi task. we send the command [_wifiEnableCommand]
+  /// to device's [commandCharacteristicId] to turn on wifi.
+  /// in case of success, the device breaks the ble connection and creates a
+  /// wifi hotspot.
   Future<bool> turnOnWifi() async {
     return _runBleTask(
       methodName: 'turnOnWifi',
@@ -84,6 +101,9 @@ class BleRepository {
     );
   }
 
+  /// set device's date and time.
+  /// [timeBytes] is an 8 byte array - unix timestamp of date and time in seconds in little endian format
+  /// we send the command [_setDateTimeCommand] to device's [commandCharacteristicId] to set date and time
   Future<bool> setDateTime() async {
     return _runBleTask(
       methodName: 'setDateTime',
@@ -105,6 +125,9 @@ class BleRepository {
     );
   }
 
+  /// reboot device. is case of success, the device reboots.
+  /// device breaks ble connection. so, we have to manually reconect if needed after reboot
+  /// we send the command [_setRebootCommand] to device's [commandCharacteristicId]
   Future<bool> setReboot() async {
     return _runBleTask(
       methodName: 'setReboot',
@@ -119,6 +142,9 @@ class BleRepository {
     );
   }
 
+  /// factory reset device. is case of success, the device reboots.
+  /// device breaks ble connection. so, we have to manually reconect if needed after reboot
+  /// we send the command [_factoryResetCommand] to device's [commandCharacteristicId]
   Future<bool> factoryReset() async {
     return _runBleTask(
       methodName: 'factoryReset',
@@ -133,6 +159,33 @@ class BleRepository {
     );
   }
 
+  /// update config device. is case of success, the device reboots.
+  /// if [resetSync] is true, resets sync time too.
+  /// device breaks ble connection. so, we have to manually reconect if needed after reboot
+  /// we send the command [_updateConfig] to device's [commandCharacteristicId]
+  Future<bool> updateConfig(bool resetSync) async {
+    return _runBleTask(
+      methodName: 'updateConfig',
+      fallbackResult: false,
+      task: () async {
+        await _bleService.write(
+          _bleService.getCharacteristicByUuidString(commandCharacteristicId),
+          [..._updateConfig, resetSync ? 1 : 0],
+        );
+        return true;
+      },
+    );
+  }
+
+  /// get config from device
+  /// returns tuple (success, config) in case of success
+  /// here we got device config data using ble connection.
+  /// for details, see [DeviceConfig] class members.
+  ///
+  /// !!! NOTE: have no idea what for is [possibleConnectedBookletIds].
+  /// cuz looking throug old code i see it contains just all device folders in simple list.
+  /// not folder tree, where we can know subfolders and files inside, but just a flat list of device folders
+  /// so, for now, [possibleConnectedBookletIds] - is empty list
   Future<(bool, DeviceConfig?)> getConfig() async {
     return _runBleTask(
       methodName: 'getConfig',
