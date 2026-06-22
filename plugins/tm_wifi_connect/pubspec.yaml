@@ -1,9 +1,7 @@
 name: tm_wifi_connect
 version: 0.0.1
 description: >-
-  A low dependency Flutter plugin to connect to WiFi networks by SSID or SSID
-  prefix. Extends plugin_wifi_connect with cross-platform isEnabled /
-  activateWifi / deactivateWifi support (Android and iOS).
+  Flutter plugin to connect to WiFi networks by SSID or SSID prefix.
 homepage: https://techmagic.co
 publish_to: "none"
 
