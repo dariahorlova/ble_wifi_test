@@ -25,9 +25,8 @@ class NFCService {
   Future<void> launch(
     Future<void> Function({String? ndefData, String? error})? callback,
   ) async {
-    final isNfcAvailable =
-        (await NfcManager.instance.checkAvailability()) ==
-        NfcAvailability.enabled;
+    final nfcAvailability = await NfcManager.instance.checkAvailability();
+    final isNfcAvailable = nfcAvailability == NfcAvailability.enabled;
 
     _consoleOutput('NFCService:: NFC availability: $isNfcAvailable');
     if (!isNfcAvailable) return;
@@ -99,7 +98,6 @@ class NFCService {
       ); // 1st byte is type in our case it 0x04 and means "https://"
       _consoleOutput('NFCService:: uri: $uri');
       _nfcRetryCount = 0;
-      await _stopNFCSession();
 
       // launch external method from parrent side
       _callback?.call(ndefData: uri?.queryParameters['reader_id'] ?? '');

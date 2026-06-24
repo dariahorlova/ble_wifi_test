@@ -46,9 +46,7 @@ class WifiService {
   Future<bool> disconnect() async {
     try {
       bool? isDisconnected = await TechmagicWifiConnect.disconnect();
-      if (isDisconnected == true) {
-        return true;
-      }
+      if (isDisconnected == true) return true;
     } catch (e) {
       developer.log("Disconnect error: $e");
     }

@@ -18,7 +18,7 @@ abstract class DeviceConfig with _$DeviceConfig {
     @Default(0) int batteryLevel,
     @Default(null) String? currentStoryKey,
     @Default(0) int remainingStorageMb,
-    @Default(null) List<DeviceBooklets>? booklets,
+    @Default(null) List<DeviceBooklet>? booklets,
     @Default(null) String? readerBleId,
     @Default(null) List<String>? possibleConnectedBookletIds,
   }) = _DeviceConfig;

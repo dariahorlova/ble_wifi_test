@@ -23,7 +23,24 @@ class MainApp extends StatelessWidget {
         CommonRepository(NFCService(), WifiService(), InternetService()),
         BleRepository(BLEService()),
       ),
-      child: const MaterialApp(home: MainScreen()),
+      child: MaterialApp(
+        home: MainScreen(),
+        theme: ThemeData(
+          dividerColor: Colors.black.withAlpha(20),
+          chipTheme: ChipThemeData(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            shape: RoundedRectangleBorder(
+              side: BorderSide(color: Colors.black.withAlpha(20), width: 2),
+              borderRadius: BorderRadiusGeometry.circular(24),
+            ),
+            labelStyle: TextStyle(
+              fontSize: 14,
+              fontWeight: .w600,
+              color: Colors.black.withAlpha(140),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
