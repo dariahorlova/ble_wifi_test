@@ -91,13 +91,10 @@ class BleRepository {
     return _runBleTask(
       methodName: 'turnOnWifi',
       fallbackResult: false,
-      task: () async {
-        await _bleService.write(
-          _bleService.getCharacteristicByUuidString(commandCharacteristicId),
-          _wifiEnableCommand,
-        );
-        return true;
-      },
+      task: () async => await _bleService.write(
+        _bleService.getCharacteristicByUuidString(commandCharacteristicId),
+        _wifiEnableCommand,
+      ),
     );
   }
 
@@ -108,20 +105,18 @@ class BleRepository {
     return _runBleTask(
       methodName: 'setDateTime',
       fallbackResult: false,
-      task: () async {
-        final timeBytes = Uint8List(8)
-          ..buffer.asByteData().setUint64(
-            0,
-            DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            Endian.little,
-          );
-
-        await _bleService.write(
-          _bleService.getCharacteristicByUuidString(commandCharacteristicId),
-          [..._setDateTimeCommand, ...timeBytes],
-        );
-        return true;
-      },
+      task: () async => await _bleService.write(
+        _bleService.getCharacteristicByUuidString(commandCharacteristicId),
+        [
+          ..._setDateTimeCommand,
+          ...Uint8List(8)
+            ..buffer.asByteData().setUint64(
+              0,
+              DateTime.now().millisecondsSinceEpoch ~/ 1000,
+              Endian.little,
+            ),
+        ],
+      ),
     );
   }
 
@@ -132,13 +127,10 @@ class BleRepository {
     return _runBleTask(
       methodName: 'setReboot',
       fallbackResult: false,
-      task: () async {
-        await _bleService.write(
-          _bleService.getCharacteristicByUuidString(commandCharacteristicId),
-          _setRebootCommand,
-        );
-        return true;
-      },
+      task: () async => await _bleService.write(
+        _bleService.getCharacteristicByUuidString(commandCharacteristicId),
+        _setRebootCommand,
+      ),
     );
   }
 
@@ -149,13 +141,10 @@ class BleRepository {
     return _runBleTask(
       methodName: 'factoryReset',
       fallbackResult: false,
-      task: () async {
-        await _bleService.write(
-          _bleService.getCharacteristicByUuidString(commandCharacteristicId),
-          _factoryResetCommand,
-        );
-        return true;
-      },
+      task: () async => await _bleService.write(
+        _bleService.getCharacteristicByUuidString(commandCharacteristicId),
+        _factoryResetCommand,
+      ),
     );
   }
 
@@ -167,13 +156,10 @@ class BleRepository {
     return _runBleTask(
       methodName: 'updateConfig',
       fallbackResult: false,
-      task: () async {
-        await _bleService.write(
-          _bleService.getCharacteristicByUuidString(commandCharacteristicId),
-          [..._updateConfig, resetSync ? 1 : 0],
-        );
-        return true;
-      },
+      task: () async => await _bleService.write(
+        _bleService.getCharacteristicByUuidString(commandCharacteristicId),
+        [..._updateConfig, resetSync ? 1 : 0],
+      ),
     );
   }
 

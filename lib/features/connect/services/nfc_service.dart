@@ -49,9 +49,9 @@ class NFCService {
 
     await NfcManager.instance.startSession(
       pollingOptions: {
-        NfcPollingOption.iso14443,
+        //NfcPollingOption.iso14443, <- Type A/B. useless for NDEF. never use it
         NfcPollingOption.iso15693,
-        NfcPollingOption.iso18092,
+        //NfcPollingOption.iso18092, <- FeliCa (NFC Forum Type 3). useless for infinibook
       },
       invalidateAfterFirstReadIos: true,
       alertMessageIos: "Touch and hold iPhone until sound is heard",

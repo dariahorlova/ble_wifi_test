@@ -38,6 +38,10 @@ class BleWifiCubit extends Cubit<BleWifiState> {
 
     // launch flow
     await _autoconnectToDeviceBLE(avdName, 5);
+    if (!_bleRepository.isBLEDeviceConnected) {
+      _temporaryHint(BleWifiStatus.error, 'Failed to connect to BLE device');
+      return;
+    }
     await updateDateTimeOnBle();
     await getDeviceConfigByBle();
     //await makeMagic();
@@ -99,6 +103,7 @@ class BleWifiCubit extends Cubit<BleWifiState> {
         state.copyWith(
           status: BleWifiStatus.error,
           hintText: 'Device not found',
+          currentDeviceIndex: -1,
         ),
       );
       return;
@@ -115,7 +120,7 @@ class BleWifiCubit extends Cubit<BleWifiState> {
     );
   }
 
-  Future<void> updateDateTimeOnBle() => _bleRepository.setDateTime();
+  Future<bool> updateDateTimeOnBle() => _bleRepository.setDateTime();
 
   Future<void> disconnectBLE() async {
     emit(
@@ -141,7 +146,7 @@ class BleWifiCubit extends Cubit<BleWifiState> {
 
       //connect to wifi
       final uuid = state.devices[state.currentDeviceIndex].advName
-          .split('IB_')
+          .split(BleRepository.blePrefix)
           .last;
 
       final resWifiConnect = await repository.connectToDeviceWifi(uuid);
