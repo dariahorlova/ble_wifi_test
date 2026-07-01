@@ -53,7 +53,7 @@ class NFCService {
         NfcPollingOption.iso15693,
         //NfcPollingOption.iso18092, <- FeliCa (NFC Forum Type 3). useless for infinibook
       },
-      invalidateAfterFirstReadIos: true,
+      invalidateAfterFirstReadIos: false,
       alertMessageIos: "Touch and hold iPhone until sound is heard",
       onDiscovered: _onTagDiscovered,
       onSessionErrorIos: (error) async {
@@ -99,6 +99,12 @@ class NFCService {
       ); // 1st byte is type in our case it 0x04 and means "https://"
       _consoleOutput('NFCService:: uri: $uri');
       _nfcRetryCount = 0;
+
+      // small delay to be sure, that we put enough energy through a phome reel
+      // to make the device awake and launch BLE connection.
+      await Future.delayed(const Duration(seconds: 2));
+      // now, we can stop the session, we gave enough time to the device
+      // to wake up and start BLE advertising
       await _stopNFCSession();
 
       // launch external method from parrent side
