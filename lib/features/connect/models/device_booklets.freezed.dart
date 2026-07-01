@@ -11,24 +11,31 @@ part of 'device_booklets.dart';
 
 // dart format off
 T _$identity<T>(T value) => value;
+DeviceBooklet _$DeviceBookletFromJson(
+  Map<String, dynamic> json
+) {
+    return _DeviceBooklets.fromJson(
+      json
+    );
+}
 
 /// @nodoc
-mixin _$DeviceBooklets {
+mixin _$DeviceBooklet {
 
  String get id;@JsonKey(name: 'variants') List<String> get variantIds;@JsonKey(name: 'custom_recordings') List<String> get customRecordings;
-/// Create a copy of DeviceBooklets
+/// Create a copy of DeviceBooklet
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$DeviceBookletsCopyWith<DeviceBooklets> get copyWith => _$DeviceBookletsCopyWithImpl<DeviceBooklets>(this as DeviceBooklets, _$identity);
+$DeviceBookletCopyWith<DeviceBooklet> get copyWith => _$DeviceBookletCopyWithImpl<DeviceBooklet>(this as DeviceBooklet, _$identity);
 
-  /// Serializes this DeviceBooklets to a JSON map.
+  /// Serializes this DeviceBooklet to a JSON map.
   Map<String, dynamic> toJson();
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceBooklets&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.variantIds, variantIds)&&const DeepCollectionEquality().equals(other.customRecordings, customRecordings));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceBooklet&&(identical(other.id, id) || other.id == id)&&const DeepCollectionEquality().equals(other.variantIds, variantIds)&&const DeepCollectionEquality().equals(other.customRecordings, customRecordings));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -37,15 +44,15 @@ int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().ha
 
 @override
 String toString() {
-  return 'DeviceBooklets(id: $id, variantIds: $variantIds, customRecordings: $customRecordings)';
+  return 'DeviceBooklet(id: $id, variantIds: $variantIds, customRecordings: $customRecordings)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $DeviceBookletsCopyWith<$Res>  {
-  factory $DeviceBookletsCopyWith(DeviceBooklets value, $Res Function(DeviceBooklets) _then) = _$DeviceBookletsCopyWithImpl;
+abstract mixin class $DeviceBookletCopyWith<$Res>  {
+  factory $DeviceBookletCopyWith(DeviceBooklet value, $Res Function(DeviceBooklet) _then) = _$DeviceBookletCopyWithImpl;
 @useResult
 $Res call({
  String id,@JsonKey(name: 'variants') List<String> variantIds,@JsonKey(name: 'custom_recordings') List<String> customRecordings
@@ -56,14 +63,14 @@ $Res call({
 
 }
 /// @nodoc
-class _$DeviceBookletsCopyWithImpl<$Res>
-    implements $DeviceBookletsCopyWith<$Res> {
-  _$DeviceBookletsCopyWithImpl(this._self, this._then);
+class _$DeviceBookletCopyWithImpl<$Res>
+    implements $DeviceBookletCopyWith<$Res> {
+  _$DeviceBookletCopyWithImpl(this._self, this._then);
 
-  final DeviceBooklets _self;
-  final $Res Function(DeviceBooklets) _then;
+  final DeviceBooklet _self;
+  final $Res Function(DeviceBooklet) _then;
 
-/// Create a copy of DeviceBooklets
+/// Create a copy of DeviceBooklet
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? variantIds = null,Object? customRecordings = null,}) {
   return _then(_self.copyWith(
@@ -77,8 +84,8 @@ as List<String>,
 }
 
 
-/// Adds pattern-matching-related methods to [DeviceBooklets].
-extension DeviceBookletsPatterns on DeviceBooklets {
+/// Adds pattern-matching-related methods to [DeviceBooklet].
+extension DeviceBookletPatterns on DeviceBooklet {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -210,7 +217,7 @@ return $default(_that.id,_that.variantIds,_that.customRecordings);case _:
 /// @nodoc
 @JsonSerializable()
 
-class _DeviceBooklets implements DeviceBooklets {
+class _DeviceBooklets implements DeviceBooklet {
   const _DeviceBooklets({required this.id, @JsonKey(name: 'variants') required final  List<String> variantIds, @JsonKey(name: 'custom_recordings') required final  List<String> customRecordings}): _variantIds = variantIds,_customRecordings = customRecordings;
   factory _DeviceBooklets.fromJson(Map<String, dynamic> json) => _$DeviceBookletsFromJson(json);
 
@@ -230,7 +237,7 @@ class _DeviceBooklets implements DeviceBooklets {
 }
 
 
-/// Create a copy of DeviceBooklets
+/// Create a copy of DeviceBooklet
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
@@ -252,14 +259,14 @@ int get hashCode => Object.hash(runtimeType,id,const DeepCollectionEquality().ha
 
 @override
 String toString() {
-  return 'DeviceBooklets(id: $id, variantIds: $variantIds, customRecordings: $customRecordings)';
+  return 'DeviceBooklet(id: $id, variantIds: $variantIds, customRecordings: $customRecordings)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$DeviceBookletsCopyWith<$Res> implements $DeviceBookletsCopyWith<$Res> {
+abstract mixin class _$DeviceBookletsCopyWith<$Res> implements $DeviceBookletCopyWith<$Res> {
   factory _$DeviceBookletsCopyWith(_DeviceBooklets value, $Res Function(_DeviceBooklets) _then) = __$DeviceBookletsCopyWithImpl;
 @override @useResult
 $Res call({
@@ -278,7 +285,7 @@ class __$DeviceBookletsCopyWithImpl<$Res>
   final _DeviceBooklets _self;
   final $Res Function(_DeviceBooklets) _then;
 
-/// Create a copy of DeviceBooklets
+/// Create a copy of DeviceBooklet
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? variantIds = null,Object? customRecordings = null,}) {
   return _then(_DeviceBooklets(

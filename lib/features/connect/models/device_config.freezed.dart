@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DeviceConfig {
 
- String get childName; String get readerId; String? get firmwareVersion; int get transferStatus; int get batteryLevel; String? get currentStoryKey; int get remainingStorageMb; List<DeviceBooklets>? get booklets; String? get readerBleId; List<String>? get possibleConnectedBookletIds;
+ String get childName; String get readerId; String? get firmwareVersion; int get transferStatus; int get batteryLevel; String? get currentStoryKey; int get remainingStorageMb; List<DeviceBooklet>? get booklets; String? get readerBleId; List<String>? get possibleConnectedBookletIds;
 /// Create a copy of DeviceConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $DeviceConfigCopyWith<$Res>  {
   factory $DeviceConfigCopyWith(DeviceConfig value, $Res Function(DeviceConfig) _then) = _$DeviceConfigCopyWithImpl;
 @useResult
 $Res call({
- String childName, String readerId, String? firmwareVersion, int transferStatus, int batteryLevel, String? currentStoryKey, int remainingStorageMb, List<DeviceBooklets>? booklets, String? readerBleId, List<String>? possibleConnectedBookletIds
+ String childName, String readerId, String? firmwareVersion, int transferStatus, int batteryLevel, String? currentStoryKey, int remainingStorageMb, List<DeviceBooklet>? booklets, String? readerBleId, List<String>? possibleConnectedBookletIds
 });
 
 
@@ -72,7 +72,7 @@ as int,batteryLevel: null == batteryLevel ? _self.batteryLevel : batteryLevel //
 as int,currentStoryKey: freezed == currentStoryKey ? _self.currentStoryKey : currentStoryKey // ignore: cast_nullable_to_non_nullable
 as String?,remainingStorageMb: null == remainingStorageMb ? _self.remainingStorageMb : remainingStorageMb // ignore: cast_nullable_to_non_nullable
 as int,booklets: freezed == booklets ? _self.booklets : booklets // ignore: cast_nullable_to_non_nullable
-as List<DeviceBooklets>?,readerBleId: freezed == readerBleId ? _self.readerBleId : readerBleId // ignore: cast_nullable_to_non_nullable
+as List<DeviceBooklet>?,readerBleId: freezed == readerBleId ? _self.readerBleId : readerBleId // ignore: cast_nullable_to_non_nullable
 as String?,possibleConnectedBookletIds: freezed == possibleConnectedBookletIds ? _self.possibleConnectedBookletIds : possibleConnectedBookletIds // ignore: cast_nullable_to_non_nullable
 as List<String>?,
   ));
@@ -159,7 +159,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String childName,  String readerId,  String? firmwareVersion,  int transferStatus,  int batteryLevel,  String? currentStoryKey,  int remainingStorageMb,  List<DeviceBooklets>? booklets,  String? readerBleId,  List<String>? possibleConnectedBookletIds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String childName,  String readerId,  String? firmwareVersion,  int transferStatus,  int batteryLevel,  String? currentStoryKey,  int remainingStorageMb,  List<DeviceBooklet>? booklets,  String? readerBleId,  List<String>? possibleConnectedBookletIds)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DeviceConfig() when $default != null:
 return $default(_that.childName,_that.readerId,_that.firmwareVersion,_that.transferStatus,_that.batteryLevel,_that.currentStoryKey,_that.remainingStorageMb,_that.booklets,_that.readerBleId,_that.possibleConnectedBookletIds);case _:
@@ -180,7 +180,7 @@ return $default(_that.childName,_that.readerId,_that.firmwareVersion,_that.trans
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String childName,  String readerId,  String? firmwareVersion,  int transferStatus,  int batteryLevel,  String? currentStoryKey,  int remainingStorageMb,  List<DeviceBooklets>? booklets,  String? readerBleId,  List<String>? possibleConnectedBookletIds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String childName,  String readerId,  String? firmwareVersion,  int transferStatus,  int batteryLevel,  String? currentStoryKey,  int remainingStorageMb,  List<DeviceBooklet>? booklets,  String? readerBleId,  List<String>? possibleConnectedBookletIds)  $default,) {final _that = this;
 switch (_that) {
 case _DeviceConfig():
 return $default(_that.childName,_that.readerId,_that.firmwareVersion,_that.transferStatus,_that.batteryLevel,_that.currentStoryKey,_that.remainingStorageMb,_that.booklets,_that.readerBleId,_that.possibleConnectedBookletIds);case _:
@@ -200,7 +200,7 @@ return $default(_that.childName,_that.readerId,_that.firmwareVersion,_that.trans
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String childName,  String readerId,  String? firmwareVersion,  int transferStatus,  int batteryLevel,  String? currentStoryKey,  int remainingStorageMb,  List<DeviceBooklets>? booklets,  String? readerBleId,  List<String>? possibleConnectedBookletIds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String childName,  String readerId,  String? firmwareVersion,  int transferStatus,  int batteryLevel,  String? currentStoryKey,  int remainingStorageMb,  List<DeviceBooklet>? booklets,  String? readerBleId,  List<String>? possibleConnectedBookletIds)?  $default,) {final _that = this;
 switch (_that) {
 case _DeviceConfig() when $default != null:
 return $default(_that.childName,_that.readerId,_that.firmwareVersion,_that.transferStatus,_that.batteryLevel,_that.currentStoryKey,_that.remainingStorageMb,_that.booklets,_that.readerBleId,_that.possibleConnectedBookletIds);case _:
@@ -215,7 +215,7 @@ return $default(_that.childName,_that.readerId,_that.firmwareVersion,_that.trans
 
 
 class _DeviceConfig implements DeviceConfig {
-  const _DeviceConfig({required this.childName, required this.readerId, this.firmwareVersion = null, this.transferStatus = 0, this.batteryLevel = 0, this.currentStoryKey = null, this.remainingStorageMb = 0, final  List<DeviceBooklets>? booklets = null, this.readerBleId = null, final  List<String>? possibleConnectedBookletIds = null}): _booklets = booklets,_possibleConnectedBookletIds = possibleConnectedBookletIds;
+  const _DeviceConfig({required this.childName, required this.readerId, this.firmwareVersion = null, this.transferStatus = 0, this.batteryLevel = 0, this.currentStoryKey = null, this.remainingStorageMb = 0, final  List<DeviceBooklet>? booklets = null, this.readerBleId = null, final  List<String>? possibleConnectedBookletIds = null}): _booklets = booklets,_possibleConnectedBookletIds = possibleConnectedBookletIds;
   
 
 @override final  String childName;
@@ -225,8 +225,8 @@ class _DeviceConfig implements DeviceConfig {
 @override@JsonKey() final  int batteryLevel;
 @override@JsonKey() final  String? currentStoryKey;
 @override@JsonKey() final  int remainingStorageMb;
- final  List<DeviceBooklets>? _booklets;
-@override@JsonKey() List<DeviceBooklets>? get booklets {
+ final  List<DeviceBooklet>? _booklets;
+@override@JsonKey() List<DeviceBooklet>? get booklets {
   final value = _booklets;
   if (value == null) return null;
   if (_booklets is EqualUnmodifiableListView) return _booklets;
@@ -275,7 +275,7 @@ abstract mixin class _$DeviceConfigCopyWith<$Res> implements $DeviceConfigCopyWi
   factory _$DeviceConfigCopyWith(_DeviceConfig value, $Res Function(_DeviceConfig) _then) = __$DeviceConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String childName, String readerId, String? firmwareVersion, int transferStatus, int batteryLevel, String? currentStoryKey, int remainingStorageMb, List<DeviceBooklets>? booklets, String? readerBleId, List<String>? possibleConnectedBookletIds
+ String childName, String readerId, String? firmwareVersion, int transferStatus, int batteryLevel, String? currentStoryKey, int remainingStorageMb, List<DeviceBooklet>? booklets, String? readerBleId, List<String>? possibleConnectedBookletIds
 });
 
 
@@ -302,7 +302,7 @@ as int,batteryLevel: null == batteryLevel ? _self.batteryLevel : batteryLevel //
 as int,currentStoryKey: freezed == currentStoryKey ? _self.currentStoryKey : currentStoryKey // ignore: cast_nullable_to_non_nullable
 as String?,remainingStorageMb: null == remainingStorageMb ? _self.remainingStorageMb : remainingStorageMb // ignore: cast_nullable_to_non_nullable
 as int,booklets: freezed == booklets ? _self._booklets : booklets // ignore: cast_nullable_to_non_nullable
-as List<DeviceBooklets>?,readerBleId: freezed == readerBleId ? _self.readerBleId : readerBleId // ignore: cast_nullable_to_non_nullable
+as List<DeviceBooklet>?,readerBleId: freezed == readerBleId ? _self.readerBleId : readerBleId // ignore: cast_nullable_to_non_nullable
 as String?,possibleConnectedBookletIds: freezed == possibleConnectedBookletIds ? _self._possibleConnectedBookletIds : possibleConnectedBookletIds // ignore: cast_nullable_to_non_nullable
 as List<String>?,
   ));

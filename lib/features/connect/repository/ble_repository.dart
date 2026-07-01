@@ -18,7 +18,6 @@ class BleRepository {
 
   final BLEService _bleService;
 
-  static const blePrefix = 'IB_';
   static const String serviceUuid = 'ca23911f-cbb4-43ef-8509-87f7c9852d71';
   static const commandCharacteristicId = '26fd90a8-75a2-b5a2-774d-5fbd530c10a7';
   static const listenCharacteristicId = 'f55343e8-3030-41a7-b8f7-cb3e4cba8cf7';
@@ -38,6 +37,10 @@ class BleRepository {
 
   /// is device connected getter. false if no device is connected
   bool get isBLEDeviceConnected => _bleService.isBLEDeviceConnected;
+
+  /// stream of connection transitions. `false` means the device dropped the
+  /// link (reboot/reset/wifi-enable/timeout). lets the cubit reconcile state.
+  Stream<bool> get connectionStream => _bleService.connectionStream;
 
   /// connect to wanted BluetoothDevice
   /// returns tuple (isOk, message_key), where [isOk] means is connection successful or not
@@ -238,7 +241,7 @@ class BleRepository {
           readerBleId: _bleService.connectedDevice?.remoteId.str,
           remainingStorageMb: contentJson['remaining_mb'] as int? ?? 0,
           booklets: resList
-              .map((story) => DeviceBooklets.fromJson(story))
+              .map((story) => DeviceBooklet.fromJson(story))
               .toList(),
           possibleConnectedBookletIds: [],
         );

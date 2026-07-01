@@ -26,6 +26,15 @@ class BLEService {
   /// subscription for tracking connection state changes
   StreamSubscription<BluetoothConnectionState>? _connectionStateSubscription;
 
+  /// broadcasts the connected/disconnected transitions of [connectedDevice].
+  /// emits `false` when the device drops the link on its own (reboot, reset,
+  /// wifi-enable, timeout) so listeners can reconcile their state.
+  final StreamController<bool> _connectionController =
+      StreamController<bool>.broadcast();
+
+  /// stream of connection state changes. `true` = connected, `false` = not.
+  Stream<bool> get connectionStream => _connectionController.stream;
+
   bool _isConnected = false;
 
   /// getter to find out if the device is currently connected
@@ -133,6 +142,7 @@ class BLEService {
           connectedDevice = null;
           _commands.clear();
         }
+        _connectionController.add(_isConnected);
       });
 
       _consoleOutput('BLEService:: successfully connected to device');

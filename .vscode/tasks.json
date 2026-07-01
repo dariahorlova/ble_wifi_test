@@ -1,0 +1,40 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "[All] Get dependencies",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "[tm_wifi_connect] Get dependencies",
+                "[App] Get dependencies",
+            ],
+            "problemMatcher": [],
+            "detail": "Get packages"
+        },
+        {
+            "label": "[App] Get dependencies",
+            "type": "shell",
+            "command": "flutter",
+            "args": [
+                "pub",
+                "get"
+            ],
+            "problemMatcher": [],
+            "detail": "Get packages for the app"
+        },
+        {
+            "label": "[tm_wifi_connect] Get dependencies",
+            "type": "shell",
+            "command": "flutter",
+            "options": {
+                "cwd": "plugins/tm_wifi_connect"
+            },
+            "args": [
+                "pub",
+                "get"
+            ],
+            "problemMatcher": [],
+            "detail": "Get packages for the tm_wifi_connect subpackage"
+        }
+    ]
+}

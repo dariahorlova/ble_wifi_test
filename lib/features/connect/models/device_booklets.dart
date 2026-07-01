@@ -4,13 +4,13 @@ part 'device_booklets.freezed.dart';
 part 'device_booklets.g.dart';
 
 @freezed
-abstract class DeviceBooklets with _$DeviceBooklets {
-  const factory DeviceBooklets({
+abstract class DeviceBooklet with _$DeviceBooklet {
+  const factory DeviceBooklet({
     required String id,
     @JsonKey(name: 'variants') required List<String> variantIds,
     @JsonKey(name: 'custom_recordings') required List<String> customRecordings,
   }) = _DeviceBooklets;
 
-  factory DeviceBooklets.fromJson(Map<String, dynamic> json) =>
+  factory DeviceBooklet.fromJson(Map<String, dynamic> json) =>
       _$DeviceBookletsFromJson(json);
 }
