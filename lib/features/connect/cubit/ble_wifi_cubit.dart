@@ -1,10 +1,12 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../models/device_config.dart';
+import '../enums/reader_connection.dart';
+import '../models/reader_device.dart';
 import '../repository/ble_repository.dart';
 import '../repository/common_repository.dart';
 
@@ -15,11 +17,32 @@ class BleWifiCubit extends Cubit<BleWifiState> {
   BleWifiCubit(this.repository, this._bleRepository)
     : super(const BleWifiState(status: BleWifiStatus.initial)) {
     _bleRepository.setLogLevel(BLERepoLogLevel.debug);
+    _bleConnectionStateSubscription = _bleRepository.connectionStream.listen((
+      isConnected,
+    ) {
+      // just to update UI if we suddenly lost connection to BLE device.
+      if (!isConnected) {
+        emit(
+          state.copyWith(
+            readerDevice: state.readerDevice?.copyWith(
+              connection: ReaderConnection.none,
+            ),
+          ),
+        );
+      }
+    });
     launchNFC();
+  }
+
+  @override
+  Future<void> close() async {
+    await _bleConnectionStateSubscription?.cancel();
+    await super.close();
   }
 
   final CommonRepository repository;
   final BleRepository _bleRepository;
+  StreamSubscription<bool>? _bleConnectionStateSubscription;
 
   Future<void> launchNFC() => repository.launchNFC(_nfcCallback);
 
@@ -33,32 +56,25 @@ class BleWifiCubit extends Cubit<BleWifiState> {
       return;
     }
 
-    //create an avdName from ndef
-    final avdName = '${BleRepository.blePrefix}$ndefData';
+    //create an advName from ndef
+    final advName = '${BleRepository.blePrefix}$ndefData';
 
     // launch flow
-    await _autoconnectToDeviceBLE(avdName, 5);
+    await _autoconnectToDeviceBLE(advName, 5);
     if (!_bleRepository.isBLEDeviceConnected) {
       _temporaryHint(BleWifiStatus.error, 'Failed to connect to BLE device');
       return;
     }
     await updateDateTimeOnBle();
     await getDeviceConfigByBle();
-    //await makeMagic();
   }
 
-  Future<void> searchBLE({int timeout = 15}) async {
-    if (state.currentDeviceIndex != -1) {
+  Future<List<BluetoothDevice>?> _searchBLE({int timeout = 15}) async {
+    if (_bleRepository.isBLEDeviceConnected) {
       disconnectBLE();
     }
 
-    emit(
-      state.copyWith(
-        status: BleWifiStatus.loading,
-        hintText: 'Searching BLE devices...',
-        devices: [],
-      ),
-    );
+    _temporaryHint(BleWifiStatus.loading, 'Searching BLE devices...');
     try {
       final devices =
           await _bleRepository.scanForDevices(
@@ -66,75 +82,64 @@ class BleWifiCubit extends Cubit<BleWifiState> {
             timeout: Duration(seconds: timeout),
           ) ??
           [];
-      emit(
-        state.copyWith(
-          status: BleWifiStatus.success,
-          devices: devices.map((e) => e.device).toList(),
-          hintText: '',
-        ),
-      );
+      _temporaryHint(BleWifiStatus.success, '');
+
+      return devices.map((e) => e.device).toList();
     } catch (e) {
       _temporaryHint(BleWifiStatus.error, 'Error occured...');
     }
+    return null;
   }
 
-  Future<void> connectToDeviceBLEByIndex(int index) async {
-    emit(
-      state.copyWith(
-        status: BleWifiStatus.loading,
-        hintText: 'Connecting to BLE device...',
-      ),
-    );
+  Future<void> _autoconnectToDeviceBLE(String advName, int timeout) async {
+    final devicesList = await _searchBLE(timeout: timeout);
+    final index = devicesList?.indexWhere((e) => e.advName == advName);
+    if (devicesList == null || index == null || index == -1) {
+      _temporaryHint(BleWifiStatus.error, 'Device not found');
+      return;
+    }
+
     final (res, hint) = await _bleRepository.connectToDevice(
-      state.devices[index],
+      devicesList[index],
     );
+
     _temporaryHint(
       res ? BleWifiStatus.success : BleWifiStatus.error,
       hint,
-      currentDeviceIndex: res ? index : -1,
+      readerDevice: res
+          ? ReaderDevice(
+              readerId: devicesList[index].advName.replaceFirst(
+                BleRepository.blePrefix,
+                '',
+              ),
+              // actually we can just use ReaderConnection.ble
+              connection: _bleRepository.isBLEDeviceConnected
+                  ? ReaderConnection.ble
+                  : ReaderConnection.none,
+            )
+          : null,
     );
-  }
-
-  Future<void> _autoconnectToDeviceBLE(String avdName, int timeout) async {
-    await searchBLE(timeout: timeout);
-    final index = state.devices.indexWhere((e) => e.advName == avdName);
-    if (index == -1) {
-      emit(
-        state.copyWith(
-          status: BleWifiStatus.error,
-          hintText: 'Device not found',
-          currentDeviceIndex: -1,
-        ),
-      );
-      return;
-    }
-    await connectToDeviceBLEByIndex(index);
   }
 
   Future<void> getDeviceConfigByBle() async {
     final (res, config) = await _bleRepository.getConfig();
-    emit(state.copyWith(deviceConfig: config));
+
     _temporaryHint(
       res ? BleWifiStatus.success : BleWifiStatus.error,
       'got config from BLE: $res',
+      readerDevice: state.readerDevice?.copyWith(config: config),
     );
   }
 
   Future<bool> updateDateTimeOnBle() => _bleRepository.setDateTime();
 
   Future<void> disconnectBLE() async {
-    emit(
-      state.copyWith(
-        status: BleWifiStatus.loading,
-        hintText: 'Disconnecting BLE device...',
-        deviceConfig: null,
-      ),
-    );
+    _temporaryHint(BleWifiStatus.loading, 'Disconnecting BLE device...');
     await _bleRepository.disconnect();
-    _temporaryHint(BleWifiStatus.success, 'Done', currentDeviceIndex: -1);
+    _temporaryHint(BleWifiStatus.success, 'Done', readerDevice: null);
   }
 
-  Future<void> makeMagic() async {
+  Future<void> connectToDeviceWifi() async {
     if (_bleRepository.isBLEDeviceConnected) {
       // turn on wifi
       final resWifiLaunch = await _bleRepository.turnOnWifi();
@@ -142,31 +147,33 @@ class BleWifiCubit extends Cubit<BleWifiState> {
         _temporaryHint(BleWifiStatus.error, 'Failed to turn on wifi');
         return;
       }
-      emit(state.copyWith(hintText: 'Wifi is ON'));
+      _temporaryHint(BleWifiStatus.success, 'Wifi is ON');
 
       //connect to wifi
-      final uuid = state.devices[state.currentDeviceIndex].advName
-          .split(BleRepository.blePrefix)
-          .last;
-
+      final uuid = state.readerDevice?.readerId ?? '';
       final resWifiConnect = await repository.connectToDeviceWifi(uuid);
-      await _bleRepository.disconnect();
 
-      emit(state.copyWith(hintText: 'BLE device is disconnected'));
+      if (resWifiConnect && !_bleRepository.isBLEDeviceConnected) {
+        //todo: !!! here is a correct place to establish soccet connection,
+        // cuz we are really connected to device's wifi hotspot
 
-      if (!resWifiConnect) {
+        _temporaryHint(
+          BleWifiStatus.success,
+          'Connected to device WiFi',
+          readerDevice: state.readerDevice?.copyWith(
+            connection: ReaderConnection.wifi,
+          ),
+        );
+      } else {
+        // we are stiion on ble connection.
         _temporaryHint(
           BleWifiStatus.error,
-          'Failed to connect on wifi network',
+          'Failed to connect on wifi network.',
         );
+        // we can transfer data through ble connection or show an error,
+        // or try to launch wifi again...
         return;
       }
-      emit(
-        state.copyWith(
-          hintText: 'Connected to device WiFi',
-          isWifiConnected: true,
-        ),
-      );
 
       //-> now we don't have internet. we are connected to device's wifi hotspot.
       // let's check internet connection for 5 seconds.
@@ -184,29 +191,31 @@ class BleWifiCubit extends Cubit<BleWifiState> {
       }
       //<-
 
+      // actually, we don't nned to launch this in prod, cuz we have to switch
+      // to ble again. so, this should be done automatically, when ble raises
+      // but for now, it's ok
       await repository.disconnectDeviceWifi();
-      developer.log('repo::makeMagic. device wifi is disconnected.');
-      emit(
-        state.copyWith(
-          hintText: 'WIFI device is disconnected.',
-          isWifiConnected: false,
-          currentDeviceIndex: -1,
-        ),
-      );
 
       developer.log('repo::makeMagic. reconnecting to internet...');
-      emit(state.copyWith(hintText: 'Reconecting to Internet...'));
+      _temporaryHint(BleWifiStatus.loading, 'Reconnecting to Internet...');
+
       while (!await repository.pingInternet()) {
         developer.log(
           'repo::makeMagic. reconnecting to internet... this try failed. trying again in a second...',
         );
         await Future.delayed(const Duration(seconds: 1));
       }
-      developer.log('repo::makeMagic. reconnecting to internet... done.');
-      emit(state.copyWith(hintText: 'Internet is reconnected.'));
-      await Future.delayed(const Duration(seconds: 3));
 
-      _temporaryHint(BleWifiStatus.success, 'Done', currentDeviceIndex: -1);
+      developer.log('repo::makeMagic. reconnecting to internet... done.');
+      _temporaryHint(
+        BleWifiStatus.success,
+        'Done',
+        readerDevice: state.readerDevice?.copyWith(
+          connection: ReaderConnection.none, // for now
+        ),
+      );
+      //todo: !!! here we already have an internet connection and can update backend
+      // with new data...
     } else {
       _temporaryHint(BleWifiStatus.success, 'Connect to device first');
     }
@@ -216,13 +225,13 @@ class BleWifiCubit extends Cubit<BleWifiState> {
     BleWifiStatus status,
     String hint, {
     int secondsToShow = 3,
-    int? currentDeviceIndex,
+    ReaderDevice? readerDevice,
   }) async {
     emit(
       state.copyWith(
         status: status,
         hintText: hint,
-        currentDeviceIndex: currentDeviceIndex ?? state.currentDeviceIndex,
+        readerDevice: readerDevice ?? state.readerDevice,
       ),
     );
     await Future.delayed(Duration(seconds: secondsToShow));

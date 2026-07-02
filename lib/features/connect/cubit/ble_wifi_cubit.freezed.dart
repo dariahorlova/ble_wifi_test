@@ -14,7 +14,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BleWifiState {
 
- BleWifiStatus get status; int get currentDeviceIndex; bool get isWifiConnected; String get hintText; List<BluetoothDevice> get devices; DeviceConfig? get deviceConfig;
+ BleWifiStatus get status;//@Default(-1) int currentDeviceIndex,
+//@Default(false) bool isWifiConnected,
+ String get hintText; ReaderDevice? get readerDevice;
 /// Create a copy of BleWifiState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +27,16 @@ $BleWifiStateCopyWith<BleWifiState> get copyWith => _$BleWifiStateCopyWithImpl<B
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BleWifiState&&(identical(other.status, status) || other.status == status)&&(identical(other.currentDeviceIndex, currentDeviceIndex) || other.currentDeviceIndex == currentDeviceIndex)&&(identical(other.isWifiConnected, isWifiConnected) || other.isWifiConnected == isWifiConnected)&&(identical(other.hintText, hintText) || other.hintText == hintText)&&const DeepCollectionEquality().equals(other.devices, devices)&&(identical(other.deviceConfig, deviceConfig) || other.deviceConfig == deviceConfig));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BleWifiState&&(identical(other.status, status) || other.status == status)&&(identical(other.hintText, hintText) || other.hintText == hintText)&&(identical(other.readerDevice, readerDevice) || other.readerDevice == readerDevice));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,currentDeviceIndex,isWifiConnected,hintText,const DeepCollectionEquality().hash(devices),deviceConfig);
+int get hashCode => Object.hash(runtimeType,status,hintText,readerDevice);
 
 @override
 String toString() {
-  return 'BleWifiState(status: $status, currentDeviceIndex: $currentDeviceIndex, isWifiConnected: $isWifiConnected, hintText: $hintText, devices: $devices, deviceConfig: $deviceConfig)';
+  return 'BleWifiState(status: $status, hintText: $hintText, readerDevice: $readerDevice)';
 }
 
 
@@ -45,11 +47,11 @@ abstract mixin class $BleWifiStateCopyWith<$Res>  {
   factory $BleWifiStateCopyWith(BleWifiState value, $Res Function(BleWifiState) _then) = _$BleWifiStateCopyWithImpl;
 @useResult
 $Res call({
- BleWifiStatus status, int currentDeviceIndex, bool isWifiConnected, String hintText, List<BluetoothDevice> devices, DeviceConfig? deviceConfig
+ BleWifiStatus status, String hintText, ReaderDevice? readerDevice
 });
 
 
-$DeviceConfigCopyWith<$Res>? get deviceConfig;
+$ReaderDeviceCopyWith<$Res>? get readerDevice;
 
 }
 /// @nodoc
@@ -62,28 +64,25 @@ class _$BleWifiStateCopyWithImpl<$Res>
 
 /// Create a copy of BleWifiState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? currentDeviceIndex = null,Object? isWifiConnected = null,Object? hintText = null,Object? devices = null,Object? deviceConfig = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? hintText = null,Object? readerDevice = freezed,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as BleWifiStatus,currentDeviceIndex: null == currentDeviceIndex ? _self.currentDeviceIndex : currentDeviceIndex // ignore: cast_nullable_to_non_nullable
-as int,isWifiConnected: null == isWifiConnected ? _self.isWifiConnected : isWifiConnected // ignore: cast_nullable_to_non_nullable
-as bool,hintText: null == hintText ? _self.hintText : hintText // ignore: cast_nullable_to_non_nullable
-as String,devices: null == devices ? _self.devices : devices // ignore: cast_nullable_to_non_nullable
-as List<BluetoothDevice>,deviceConfig: freezed == deviceConfig ? _self.deviceConfig : deviceConfig // ignore: cast_nullable_to_non_nullable
-as DeviceConfig?,
+as BleWifiStatus,hintText: null == hintText ? _self.hintText : hintText // ignore: cast_nullable_to_non_nullable
+as String,readerDevice: freezed == readerDevice ? _self.readerDevice : readerDevice // ignore: cast_nullable_to_non_nullable
+as ReaderDevice?,
   ));
 }
 /// Create a copy of BleWifiState
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$DeviceConfigCopyWith<$Res>? get deviceConfig {
-    if (_self.deviceConfig == null) {
+$ReaderDeviceCopyWith<$Res>? get readerDevice {
+    if (_self.readerDevice == null) {
     return null;
   }
 
-  return $DeviceConfigCopyWith<$Res>(_self.deviceConfig!, (value) {
-    return _then(_self.copyWith(deviceConfig: value));
+  return $ReaderDeviceCopyWith<$Res>(_self.readerDevice!, (value) {
+    return _then(_self.copyWith(readerDevice: value));
   });
 }
 }
@@ -167,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( BleWifiStatus status,  int currentDeviceIndex,  bool isWifiConnected,  String hintText,  List<BluetoothDevice> devices,  DeviceConfig? deviceConfig)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( BleWifiStatus status,  String hintText,  ReaderDevice? readerDevice)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BleWifiState() when $default != null:
-return $default(_that.status,_that.currentDeviceIndex,_that.isWifiConnected,_that.hintText,_that.devices,_that.deviceConfig);case _:
+return $default(_that.status,_that.hintText,_that.readerDevice);case _:
   return orElse();
 
 }
@@ -188,10 +187,10 @@ return $default(_that.status,_that.currentDeviceIndex,_that.isWifiConnected,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( BleWifiStatus status,  int currentDeviceIndex,  bool isWifiConnected,  String hintText,  List<BluetoothDevice> devices,  DeviceConfig? deviceConfig)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( BleWifiStatus status,  String hintText,  ReaderDevice? readerDevice)  $default,) {final _that = this;
 switch (_that) {
 case _BleWifiState():
-return $default(_that.status,_that.currentDeviceIndex,_that.isWifiConnected,_that.hintText,_that.devices,_that.deviceConfig);case _:
+return $default(_that.status,_that.hintText,_that.readerDevice);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +207,10 @@ return $default(_that.status,_that.currentDeviceIndex,_that.isWifiConnected,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( BleWifiStatus status,  int currentDeviceIndex,  bool isWifiConnected,  String hintText,  List<BluetoothDevice> devices,  DeviceConfig? deviceConfig)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( BleWifiStatus status,  String hintText,  ReaderDevice? readerDevice)?  $default,) {final _that = this;
 switch (_that) {
 case _BleWifiState() when $default != null:
-return $default(_that.status,_that.currentDeviceIndex,_that.isWifiConnected,_that.hintText,_that.devices,_that.deviceConfig);case _:
+return $default(_that.status,_that.hintText,_that.readerDevice);case _:
   return null;
 
 }
@@ -223,21 +222,14 @@ return $default(_that.status,_that.currentDeviceIndex,_that.isWifiConnected,_tha
 
 
 class _BleWifiState implements BleWifiState {
-  const _BleWifiState({required this.status, this.currentDeviceIndex = -1, this.isWifiConnected = false, this.hintText = '', final  List<BluetoothDevice> devices = const <BluetoothDevice>[], this.deviceConfig = null}): _devices = devices;
+  const _BleWifiState({required this.status, this.hintText = '', this.readerDevice});
   
 
 @override final  BleWifiStatus status;
-@override@JsonKey() final  int currentDeviceIndex;
-@override@JsonKey() final  bool isWifiConnected;
+//@Default(-1) int currentDeviceIndex,
+//@Default(false) bool isWifiConnected,
 @override@JsonKey() final  String hintText;
- final  List<BluetoothDevice> _devices;
-@override@JsonKey() List<BluetoothDevice> get devices {
-  if (_devices is EqualUnmodifiableListView) return _devices;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_devices);
-}
-
-@override@JsonKey() final  DeviceConfig? deviceConfig;
+@override final  ReaderDevice? readerDevice;
 
 /// Create a copy of BleWifiState
 /// with the given fields replaced by the non-null parameter values.
@@ -249,16 +241,16 @@ _$BleWifiStateCopyWith<_BleWifiState> get copyWith => __$BleWifiStateCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BleWifiState&&(identical(other.status, status) || other.status == status)&&(identical(other.currentDeviceIndex, currentDeviceIndex) || other.currentDeviceIndex == currentDeviceIndex)&&(identical(other.isWifiConnected, isWifiConnected) || other.isWifiConnected == isWifiConnected)&&(identical(other.hintText, hintText) || other.hintText == hintText)&&const DeepCollectionEquality().equals(other._devices, _devices)&&(identical(other.deviceConfig, deviceConfig) || other.deviceConfig == deviceConfig));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BleWifiState&&(identical(other.status, status) || other.status == status)&&(identical(other.hintText, hintText) || other.hintText == hintText)&&(identical(other.readerDevice, readerDevice) || other.readerDevice == readerDevice));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,currentDeviceIndex,isWifiConnected,hintText,const DeepCollectionEquality().hash(_devices),deviceConfig);
+int get hashCode => Object.hash(runtimeType,status,hintText,readerDevice);
 
 @override
 String toString() {
-  return 'BleWifiState(status: $status, currentDeviceIndex: $currentDeviceIndex, isWifiConnected: $isWifiConnected, hintText: $hintText, devices: $devices, deviceConfig: $deviceConfig)';
+  return 'BleWifiState(status: $status, hintText: $hintText, readerDevice: $readerDevice)';
 }
 
 
@@ -269,11 +261,11 @@ abstract mixin class _$BleWifiStateCopyWith<$Res> implements $BleWifiStateCopyWi
   factory _$BleWifiStateCopyWith(_BleWifiState value, $Res Function(_BleWifiState) _then) = __$BleWifiStateCopyWithImpl;
 @override @useResult
 $Res call({
- BleWifiStatus status, int currentDeviceIndex, bool isWifiConnected, String hintText, List<BluetoothDevice> devices, DeviceConfig? deviceConfig
+ BleWifiStatus status, String hintText, ReaderDevice? readerDevice
 });
 
 
-@override $DeviceConfigCopyWith<$Res>? get deviceConfig;
+@override $ReaderDeviceCopyWith<$Res>? get readerDevice;
 
 }
 /// @nodoc
@@ -286,15 +278,12 @@ class __$BleWifiStateCopyWithImpl<$Res>
 
 /// Create a copy of BleWifiState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? currentDeviceIndex = null,Object? isWifiConnected = null,Object? hintText = null,Object? devices = null,Object? deviceConfig = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? hintText = null,Object? readerDevice = freezed,}) {
   return _then(_BleWifiState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as BleWifiStatus,currentDeviceIndex: null == currentDeviceIndex ? _self.currentDeviceIndex : currentDeviceIndex // ignore: cast_nullable_to_non_nullable
-as int,isWifiConnected: null == isWifiConnected ? _self.isWifiConnected : isWifiConnected // ignore: cast_nullable_to_non_nullable
-as bool,hintText: null == hintText ? _self.hintText : hintText // ignore: cast_nullable_to_non_nullable
-as String,devices: null == devices ? _self._devices : devices // ignore: cast_nullable_to_non_nullable
-as List<BluetoothDevice>,deviceConfig: freezed == deviceConfig ? _self.deviceConfig : deviceConfig // ignore: cast_nullable_to_non_nullable
-as DeviceConfig?,
+as BleWifiStatus,hintText: null == hintText ? _self.hintText : hintText // ignore: cast_nullable_to_non_nullable
+as String,readerDevice: freezed == readerDevice ? _self.readerDevice : readerDevice // ignore: cast_nullable_to_non_nullable
+as ReaderDevice?,
   ));
 }
 
@@ -302,13 +291,13 @@ as DeviceConfig?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$DeviceConfigCopyWith<$Res>? get deviceConfig {
-    if (_self.deviceConfig == null) {
+$ReaderDeviceCopyWith<$Res>? get readerDevice {
+    if (_self.readerDevice == null) {
     return null;
   }
 
-  return $DeviceConfigCopyWith<$Res>(_self.deviceConfig!, (value) {
-    return _then(_self.copyWith(deviceConfig: value));
+  return $ReaderDeviceCopyWith<$Res>(_self.readerDevice!, (value) {
+    return _then(_self.copyWith(readerDevice: value));
   });
 }
 }

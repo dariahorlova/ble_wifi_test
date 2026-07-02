@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../enums/transfer_status.dart';
-import '../models/device_booklets.dart';
+import '../models/device_booklet.dart';
 import '../models/device_config.dart';
 import '../services/ble_service.dart';
 
@@ -38,6 +38,8 @@ class BleRepository {
 
   /// is device connected getter. false if no device is connected
   bool get isBLEDeviceConnected => _bleService.isBLEDeviceConnected;
+
+  Stream<bool> get connectionStream => _bleService.connectionStream;
 
   /// connect to wanted BluetoothDevice
   /// returns tuple (isOk, message_key), where [isOk] means is connection successful or not
@@ -224,7 +226,7 @@ class BleRepository {
           readerBleId: _bleService.connectedDevice?.remoteId.str,
           remainingStorageMb: contentJson['remaining_mb'] as int? ?? 0,
           booklets: resList
-              .map((story) => DeviceBooklets.fromJson(story))
+              .map((story) => DeviceBooklet.fromJson(story))
               .toList(),
           possibleConnectedBookletIds: [],
         );

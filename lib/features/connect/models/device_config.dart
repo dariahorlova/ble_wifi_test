@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums/transfer_status.dart';
-import 'device_booklets.dart';
+import 'device_booklet.dart';
 
 part 'device_config.freezed.dart';
 
@@ -18,7 +18,7 @@ abstract class DeviceConfig with _$DeviceConfig {
     @Default(0) int batteryLevel,
     @Default(null) String? currentStoryKey,
     @Default(0) int remainingStorageMb,
-    @Default(null) List<DeviceBooklets>? booklets,
+    @Default(null) List<DeviceBooklet>? booklets,
     @Default(null) String? readerBleId,
     @Default(null) List<String>? possibleConnectedBookletIds,
   }) = _DeviceConfig;

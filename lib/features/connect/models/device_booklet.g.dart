@@ -1,13 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'device_booklets.dart';
+part of 'device_booklet.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_DeviceBooklets _$DeviceBookletsFromJson(Map<String, dynamic> json) =>
-    _DeviceBooklets(
+_DeviceBooklet _$DeviceBookletFromJson(Map<String, dynamic> json) =>
+    _DeviceBooklet(
       id: json['id'] as String,
       variantIds: (json['variants'] as List<dynamic>)
           .map((e) => e as String)
@@ -17,7 +17,7 @@ _DeviceBooklets _$DeviceBookletsFromJson(Map<String, dynamic> json) =>
           .toList(),
     );
 
-Map<String, dynamic> _$DeviceBookletsToJson(_DeviceBooklets instance) =>
+Map<String, dynamic> _$DeviceBookletToJson(_DeviceBooklet instance) =>
     <String, dynamic>{
       'id': instance.id,
       'variants': instance.variantIds,
