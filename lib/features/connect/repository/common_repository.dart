@@ -38,6 +38,7 @@ class CommonRepository {
         // or until we reach the timeout of 10 seconds
         var count = 0;
         var currentSsid = await currentWifiSsid;
+        developer.log('current SSID: $currentSsid');
         while (desiredNerworkSsid != currentSsid || count < 20) {
           await Future.delayed(const Duration(milliseconds: 500));
           currentSsid = await currentWifiSsid;

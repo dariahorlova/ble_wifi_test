@@ -141,6 +141,8 @@ class BleWifiCubit extends Cubit<BleWifiState> {
 
   Future<void> connectToDeviceWifi() async {
     if (_bleRepository.isBLEDeviceConnected) {
+      var currentSsid = await repository.currentWifiSsid;
+      developer.log('current SSID: $currentSsid');
       // turn on wifi
       final resWifiLaunch = await _bleRepository.turnOnWifi();
       if (!resWifiLaunch) {
