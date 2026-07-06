@@ -2,13 +2,26 @@ import Flutter
 import UIKit
 import NetworkExtension
 import SystemConfiguration.CaptiveNetwork
+import CoreLocation
 
-public class SwiftTechmagicWifiConnectPlugin: NSObject, FlutterPlugin {
+public class SwiftTechmagicWifiConnectPlugin: NSObject, FlutterPlugin, CLLocationManagerDelegate {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "tm_wifi_connect", binaryMessenger: registrar.messenger())
     let instance = SwiftTechmagicWifiConnectPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
+
+  // Both CNCopyCurrentNetworkInfo and NEHotspotNetwork.fetchCurrent require
+  // Location ("When In Use") authorization to return SSID data — without it
+  // the legacy call silently returns nil, and fetchCurrent's underlying
+  // `nehelper` XPC call has been observed to crash instead of failing
+  // gracefully. This app never requested location access, so getSSID always
+  // ran unauthorized.
+  private lazy var locationManager: CLLocationManager = {
+    let manager = CLLocationManager()
+    manager.delegate = self
+    return manager
+  }()
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     do {
@@ -26,11 +39,11 @@ public class SwiftTechmagicWifiConnectPlugin: NSObject, FlutterPlugin {
           return
 
         case "disconnect":
-          result(disconnect())
+          disconnect(result: result)
           return
 
         case "getSSID":
-          result(getSSID())
+          getSSID(result: result)
           return
 
         case "connect":
@@ -255,16 +268,60 @@ public class SwiftTechmagicWifiConnectPlugin: NSObject, FlutterPlugin {
   }
 
   @available(iOS 11, *)
-  private func disconnect() -> Bool {
-    let ssid: String? = getSSID()
-    if(ssid == nil){
-      return false
+  private func disconnect(result: @escaping FlutterResult) {
+    getSSID { ssid in
+      guard let ssid = ssid else {
+        result(false)
+        return
+      }
+      NEHotspotConfigurationManager.shared.removeConfiguration(forSSID: ssid)
+      result(true)
     }
-    NEHotspotConfigurationManager.shared.removeConfiguration(forSSID: ssid ?? "")
-    return true
   }
 
-  private func getSSID() -> String? {
+  private func locationAuthorizationStatus() -> CLAuthorizationStatus {
+    if #available(iOS 14.0, *) {
+      return locationManager.authorizationStatus
+    } else {
+      return CLLocationManager.authorizationStatus()
+    }
+  }
+
+  /// Resolves the current WiFi SSID. Both `CNCopyCurrentNetworkInfo` and its
+  /// iOS 14+ replacement `NEHotspotNetwork.fetchCurrent` require Location
+  /// ("When In Use") authorization to return SSID data. Without it the
+  /// legacy call silently returns nil, and `fetchCurrent`'s XPC call to
+  /// `nehelper` has been observed to crash the process instead of failing
+  /// gracefully ("nehelper sent invalid result code [1]"). If permission was
+  /// never asked, we request it here and return nil for this call — the
+  /// caller (`connectToDeviceWifi`) already polls every 500ms, so the next
+  /// poll picks up the SSID once the user responds to the system prompt.
+  private func getSSID(result: @escaping (String?) -> Void) {
+    let status = locationAuthorizationStatus()
+    guard status == .authorizedWhenInUse || status == .authorizedAlways else {
+      if status == .notDetermined {
+        DispatchQueue.main.async {
+          self.locationManager.requestWhenInUseAuthorization()
+        }
+      }
+      result(nil)
+      return
+    }
+
+    if #available(iOS 14.0, *) {
+      NEHotspotNetwork.fetchCurrent { network in
+        // fetchCurrent's completion fires off the main thread; FlutterResult
+        // must be invoked on the platform (main) thread or the engine crashes.
+        DispatchQueue.main.async {
+          result(network?.ssid)
+        }
+      }
+    } else {
+      result(getSSIDLegacy())
+    }
+  }
+
+  private func getSSIDLegacy() -> String? {
     var ssid: String?
     if let interfaces = CNCopySupportedInterfaces() as NSArray? {
       for interface in interfaces {

@@ -39,7 +39,7 @@ class CommonRepository {
         var count = 0;
         var currentSsid = await currentWifiSsid;
         developer.log('current SSID: $currentSsid');
-        while (desiredNerworkSsid != currentSsid || count < 20) {
+        while (desiredNerworkSsid != currentSsid && count < 20) {
           await Future.delayed(const Duration(milliseconds: 500));
           currentSsid = await currentWifiSsid;
           count++;
@@ -54,7 +54,7 @@ class CommonRepository {
       );
       return res;
     } catch (e) {
-      developer.log('repo::connectToDeviceWifi. failed to connect on wifi: $e');
+      developer.log('repo::connectToDeviceWifi. failed to connect to wifi: $e');
     }
     return false;
   }
