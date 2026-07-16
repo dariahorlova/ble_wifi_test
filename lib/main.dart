@@ -5,7 +5,7 @@ import 'package:ble_wifi_test/features/connect/services/ble_service.dart';
 import 'package:ble_wifi_test/features/connect/services/internet_service.dart';
 import 'package:ble_wifi_test/features/connect/services/nfc_service.dart';
 import 'package:ble_wifi_test/features/connect/services/wifi_service.dart';
-import 'package:ble_wifi_test/main_screen.dart';
+import 'package:ble_wifi_test/features/connect/view/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

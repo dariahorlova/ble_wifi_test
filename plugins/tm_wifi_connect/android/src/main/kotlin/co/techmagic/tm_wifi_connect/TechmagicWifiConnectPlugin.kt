@@ -1,12 +1,16 @@
 package co.techmagic.tm_wifi_connect
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.*
 import android.net.wifi.WifiConfiguration
+import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSpecifier
 import android.os.Build
@@ -18,22 +22,36 @@ import android.provider.Settings
 import androidx.annotation.NonNull
 import androidx.annotation.RequiresApi
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 /** TechmagicWifiConnectPlugin */
-class TechmagicWifiConnectPlugin() : FlutterPlugin, MethodCallHandler {
+class TechmagicWifiConnectPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
+
+  companion object {
+    private const val REQUEST_CODE_WIFI_SSID = 0x5531
+  }
   // / The MethodChannel that will the communication between Flutter and native Android
   // /
   // / This local reference serves to register the plugin with the Flutter Engine and unregister it
   // / when the Flutter Engine is detached from the Activity
   private lateinit var channel: MethodChannel
   private lateinit var context: Context
+  private var activity: Activity? = null
+  private var pendingSsidResult: Result? = null
 
   // holds the call while connected using ConnectivityManager.requestNetwork API
   private var networkCallback: ConnectivityManager.NetworkCallback? = null
+
+  // holds the Network object from onAvailable for SSID retrieval on API 29+
+  private var connectedNetwork: Network? = null
+
+  // holds the SSID of the currently connected network (set on onAvailable, cleared on disconnect)
+  private var connectedSsid: String? = null
 
   // holds the network id returned by WifiManager.addNetwork, required to disconnect (API < 29)
   private var networkId: Int? = null
@@ -80,7 +98,15 @@ class TechmagicWifiConnectPlugin() : FlutterPlugin, MethodCallHandler {
         return
       }
       "getSSID" -> {
-        result.success(getSSID())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+          checkAndRequestSsidPermission(result)
+        } else {
+          @Suppress("DEPRECATION")
+          val raw = wifiManager.connectionInfo?.ssid
+          val cleaned = raw?.replace("\"", "")
+              ?.takeIf { it.isNotEmpty() && it != WifiManager.UNKNOWN_SSID }
+          result.success(cleaned)
+        }
         return
       }
       "connect" -> {
@@ -91,7 +117,7 @@ class TechmagicWifiConnectPlugin() : FlutterPlugin, MethodCallHandler {
               val specifier = WifiNetworkSpecifier.Builder()
                       .setSsid(it)
                       .build()
-              connect(specifier, result)
+              connect(specifier, result, it)
               return
             }
             else -> {
@@ -154,7 +180,7 @@ class TechmagicWifiConnectPlugin() : FlutterPlugin, MethodCallHandler {
                   }
                 }
                 .build()
-        connect(specifier, result)
+        connect(specifier, result, ssid)
         return
       }
       "securePrefixConnect" -> {
@@ -199,6 +225,46 @@ class TechmagicWifiConnectPlugin() : FlutterPlugin, MethodCallHandler {
 
   override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
     channel.setMethodCallHandler(null)
+  }
+
+  override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+    activity = binding.activity
+    binding.addRequestPermissionsResultListener { requestCode, _, grantResults ->
+      if (requestCode == REQUEST_CODE_WIFI_SSID) {
+        val pending = pendingSsidResult
+        pendingSsidResult = null
+        if (pending != null) {
+          if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            getCurrentSsidAsync(pending)
+          } else {
+            pending.success(null)
+          }
+        }
+        true
+      } else {
+        false
+      }
+    }
+  }
+
+  override fun onDetachedFromActivityForConfigChanges() { activity = null }
+  override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) { activity = binding.activity }
+  override fun onDetachedFromActivity() { activity = null }
+
+  @RequiresApi(Build.VERSION_CODES.S)
+  private fun checkAndRequestSsidPermission(result: Result) {
+    val permission = Manifest.permission.ACCESS_FINE_LOCATION
+    if (context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
+      getCurrentSsidAsync(result)
+      return
+    }
+    val act = activity
+    if (act != null) {
+      pendingSsidResult = result
+      act.requestPermissions(arrayOf(permission), REQUEST_CODE_WIFI_SSID)
+    } else {
+      getCurrentSsidAsync(result)
+    }
   }
 
   // / Brings the WiFi radio to [target] state.
@@ -375,7 +441,7 @@ class TechmagicWifiConnectPlugin() : FlutterPlugin, MethodCallHandler {
   }
 
   @RequiresApi(Build.VERSION_CODES.Q)
-  fun connect(@NonNull specifier: WifiNetworkSpecifier, @NonNull result: Result){
+  fun connect(@NonNull specifier: WifiNetworkSpecifier, @NonNull result: Result, ssid: String? = null){
     if (this.networkCallback != null) {
       // there was already a connection, unregister to disconnect before proceeding
       connectivityManager.unregisterNetworkCallback(this.networkCallback!!)
@@ -389,6 +455,8 @@ class TechmagicWifiConnectPlugin() : FlutterPlugin, MethodCallHandler {
     this.networkCallback = object : ConnectivityManager.NetworkCallback() {
       override fun onAvailable(network: Network) {
         super.onAvailable(network)
+        connectedNetwork = network
+        connectedSsid = ssid
         connectivityManager.bindProcessToNetwork(network)
         result.success(true)
         // cannot unregister callback here since it would disconnect form the network
@@ -414,6 +482,8 @@ class TechmagicWifiConnectPlugin() : FlutterPlugin, MethodCallHandler {
     connectivityManager.unregisterNetworkCallback(this.networkCallback!!)
     connectivityManager.bindProcessToNetwork(null)
     this.networkCallback = null
+    connectedNetwork = null
+    connectedSsid = null
 
     return true
   }
@@ -443,6 +513,38 @@ class TechmagicWifiConnectPlugin() : FlutterPlugin, MethodCallHandler {
     wifiManager.removeNetwork(network)
     wifiManager.reconnect()
     networkId = null
+  }
+
+  @RequiresApi(Build.VERSION_CODES.S)
+  private fun getCurrentSsidAsync(result: Result) {
+    val handler = Handler(Looper.getMainLooper())
+    var replied = false
+
+    val request = NetworkRequest.Builder()
+        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+        .build()
+
+    val callback = object : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
+      override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+        if (replied) return
+        val wifiInfo = capabilities.transportInfo as? WifiInfo
+        val ssid = wifiInfo?.ssid?.replace("\"", "")
+            ?.takeIf { it.isNotEmpty() && it != WifiManager.UNKNOWN_SSID }
+        replied = true
+        connectivityManager.unregisterNetworkCallback(this)
+        result.success(ssid)
+      }
+    }
+
+    connectivityManager.registerNetworkCallback(request, callback, handler)
+
+    handler.postDelayed({
+      if (!replied) {
+        replied = true
+        try { connectivityManager.unregisterNetworkCallback(callback) } catch (_: Exception) {}
+        result.success(null)
+      }
+    }, 2000)
   }
 
   @SuppressLint("MissingPermission")

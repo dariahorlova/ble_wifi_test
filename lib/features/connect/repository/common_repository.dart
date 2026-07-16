@@ -24,19 +24,37 @@ class CommonRepository {
   //... wifi
   Future<bool> connectToDeviceWifi(String uuid) async {
     try {
+      final desiredNerworkSsid = '$wifiSsid$uuid';
       developer.log(
-        'repo::connectToDeviceWifi. connecting to device wifi...  $wifiSsid$uuid :: $wifiPassword',
+        'repo::connectToDeviceWifi. connecting to device wifi...  $desiredNerworkSsid :: $wifiPassword',
       );
-      final res = await _wifiService.connectToDeviceWifi(
-        '$wifiSsid$uuid',
+      var res = await _wifiService.connectToDeviceWifi(
+        desiredNerworkSsid,
         wifiPassword,
       );
+
+      if (res) {
+        // if we are really connecting, we have to wait until the device is connected to the wifi network
+        // or until we reach the timeout of 10 seconds
+        var count = 0;
+        var currentSsid = await currentWifiSsid;
+        developer.log('current SSID: $currentSsid');
+        while (desiredNerworkSsid != currentSsid && count < 20) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          currentSsid = await currentWifiSsid;
+          count++;
+        }
+        if (desiredNerworkSsid != currentSsid) {
+          res = false;
+        }
+      }
+
       developer.log(
         'repo::connectToDeviceWifi. connecting to device wifi... $res',
       );
       return res;
     } catch (e) {
-      developer.log('repo::connectToDeviceWifi. failed to connect on wifi: $e');
+      developer.log('repo::connectToDeviceWifi. failed to connect to wifi: $e');
     }
     return false;
   }

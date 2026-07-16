@@ -28,6 +28,11 @@ class BLEService {
 
   bool _isConnected = false;
 
+  final StreamController<bool> _connectionStreamController =
+      StreamController<bool>.broadcast();
+
+  Stream<bool> get connectionStream => _connectionStreamController.stream;
+
   /// getter to find out if the device is currently connected
   bool get isBLEDeviceConnected => _isConnected;
 
@@ -127,6 +132,7 @@ class BLEService {
         state,
       ) {
         _isConnected = state == BluetoothConnectionState.connected;
+        _connectionStreamController.add(_isConnected);
 
         if (!_isConnected) {
           _consoleOutput('BLEService:: device disconnected automatically.');
@@ -352,6 +358,7 @@ class BLEService {
     connectedDevice = null;
     _commands.clear();
     _isConnected = false;
+    _connectionStreamController.add(false);
 
     _consoleOutput('BLEService:: disconnected from device... done.');
   }
